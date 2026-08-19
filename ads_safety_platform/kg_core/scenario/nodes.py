@@ -124,3 +124,13 @@ class ScenarioSnapshot(BaseEntity):
     vehicle_count: int = Field(0, description="车辆数量")
     pedestrian_count: int = Field(0, description="行人数量")
     traffic_light_count: int = Field(0, description="交通灯数量")
+
+
+class SafetyViolation(BaseEntity):
+    """安全违规节点"""
+    entity_type: EntityType = EntityType.SAFETY_VIOLATION
+    
+    rule_code: str = Field(..., description="规则代码")
+    severity: str = Field(..., description="严重程度")
+    message: str = Field("", description="违规描述")
+    evidence: dict = Field(default_factory=dict, description="证据数据")

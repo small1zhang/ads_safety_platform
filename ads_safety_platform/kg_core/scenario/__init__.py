@@ -7,6 +7,7 @@ from .nodes import (
     RoadElementEntity,
     EnvironmentSnapshot,
     ScenarioSnapshot,
+    SafetyViolation,
 )
 
 from .snapshot_builder import SnapshotBuilder
