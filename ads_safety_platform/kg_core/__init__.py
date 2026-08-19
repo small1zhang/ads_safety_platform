@@ -16,6 +16,8 @@ from .ontology import (
     BaseRelation,
 )
 
+from .optimization import EgoCentricROIFilter, ParallelProcessor
+
 __all__ = [
     "EntityType",
     "SceneRelationType",
@@ -24,4 +26,6 @@ __all__ = [
     "CrossLayerRelationType",
     "BaseEntity",
     "BaseRelation",
+    "EgoCentricROIFilter",
+    "ParallelProcessor",
 ]
