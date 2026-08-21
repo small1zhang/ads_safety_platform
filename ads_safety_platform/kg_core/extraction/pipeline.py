@@ -63,25 +63,65 @@ class ExtractionPipeline:
     
     def _normalize_vehicle_data(self, v: Dict) -> Dict[str, Any]:
         """标准化车辆数据"""
-        location = v.get('location', {})
-        velocity = v.get('velocity', {})
-        transform = v.get('transform', {})
-        control = v.get('control', {})
+        # 支持两种格式：
+        # 1. 嵌套格式: {'location': {'x': 0, 'y': 0}, 'velocity': {'x': 0, 'y': 15}}
+        # 2. 扁平格式: {'x': 0, 'y': 0, 'vx': 0, 'vy': 15, 'speed': 15}
+        
+        # 位置
+        if 'location' in v:
+            x = v['location'].get('x', 0)
+            y = v['location'].get('y', 0)
+            z = v['location'].get('z', 0)
+        else:
+            x = v.get('x', 0)
+            y = v.get('y', 0)
+            z = v.get('z', 0)
+        
+        # 速度
+        if 'velocity' in v:
+            vx = v['velocity'].get('x', 0)
+            vy = v['velocity'].get('y', 0)
+        else:
+            vx = v.get('vx', 0)
+            vy = v.get('vy', 0)
+        
+        speed = v.get('speed', 0)
+        if speed == 0 and (vx != 0 or vy != 0):
+            speed = math.sqrt(vx**2 + vy**2)
+        
+        # 航向角
+        if 'transform' in v:
+            yaw = math.radians(v['transform'].get('yaw', 0))
+        else:
+            yaw = v.get('yaw', 0)
+            # 如果 yaw 是角度，转换为弧度
+            if abs(yaw) > math.pi:
+                yaw = math.radians(yaw)
+        
+        # 控制
+        if 'control' in v:
+            throttle = v['control'].get('throttle', 0)
+            brake = v['control'].get('brake', 0)
+            steer = v['control'].get('steer', 0)
+        else:
+            throttle = v.get('throttle', 0)
+            brake = v.get('brake', 0)
+            steer = v.get('steer', 0)
         
         return {
-            'entity_id': f"veh_{v.get('id', 'unknown')}",
+            'entity_id': v.get('entity_id', f"veh_{id(v)}"),
             'type_id': v.get('type_id', 'vehicle.unknown'),
             'role_name': v.get('role_name', 'npc'),
-            'x': location.get('x', 0),
-            'y': location.get('y', 0),
-            'z': location.get('z', 0),
-            'vx': velocity.get('x', 0),
-            'vy': velocity.get('y', 0),
-            'speed': math.sqrt(velocity.get('x', 0)**2 + velocity.get('y', 0)**2),
-            'yaw': math.radians(transform.get('yaw', 0)),
-            'throttle': control.get('throttle', 0),
-            'brake': control.get('brake', 0),
-            'steer': control.get('steer', 0),
+            'x': x,
+            'y': y,
+            'z': z,
+            'vx': vx,
+            'vy': vy,
+            'speed': speed,
+            'yaw': yaw,
+            'throttle': throttle,
+            'brake': brake,
+            'steer': steer,
         }
     
     def _normalize_pedestrian_data(self, p: Dict) -> Dict[str, Any]:
@@ -106,13 +146,12 @@ class ExtractionPipeline:
     
     def _normalize_traffic_light_data(self, tl: Dict) -> Dict[str, Any]:
         """标准化交通灯数据"""
-        location = tl.get('location', {})
-        
+        # 支持扁平格式
         return {
-            'entity_id': f"tl_{tl.get('id', 'unknown')}",
-            'x': location.get('x', 0),
-            'y': location.get('y', 0),
-            'z': location.get('z', 0),
+            'entity_id': f"tl_{tl.get('entity_id', tl.get('id', 'unknown'))}",
+            'x': tl.get('x', 0),
+            'y': tl.get('y', 0),
+            'z': tl.get('z', 0),
             'state': tl.get('state', 'Green'),
         }
     

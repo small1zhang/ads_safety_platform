@@ -3,6 +3,7 @@
 将提取的原始数据构建为场景快照
 """
 import time
+import math
 from typing import Dict, Any, List
 
 from ..ontology.types import EntityType
@@ -80,32 +81,34 @@ class SnapshotBuilder:
         entities = []
         for v in raw_vehicles:
             try:
-                # 计算速度和航向角
-                vx = v.get('velocity', {}).get('x', 0)
-                vy = v.get('velocity', {}).get('y', 0)
-                speed = (vx**2 + vy**2) ** 0.5
+                # 速度
+                vx = v.get('vx', 0)
+                vy = v.get('vy', 0)
+                speed = v.get('speed', 0)
+                if speed == 0 and (vx != 0 or vy != 0):
+                    speed = math.sqrt(vx**2 + vy**2)
                 
-                # 航向角（从 CARLA 的 yaw 转换）
-                transform = v.get('transform', {})
-                yaw = transform.get('yaw', 0)
-                import math
-                yaw_rad = math.radians(yaw)
+                # 航向角
+                yaw = v.get('yaw', 0)
+                # 如果 yaw > pi，认为是角度
+                if abs(yaw) > math.pi:
+                    yaw = math.radians(yaw)
                 
                 entity = VehicleEntity(
-                    entity_id=f"veh_{v.get('id', 'unknown')}",
+                    entity_id=f"veh_{v.get('entity_id', 'unknown')}",
                     entity_type=EntityType.VEHICLE,
                     actor_type=v.get('type_id', 'vehicle.unknown'),
                     role_name=v.get('role_name', 'npc'),
-                    x=v.get('location', {}).get('x', 0),
-                    y=v.get('location', {}).get('y', 0),
-                    z=v.get('location', {}).get('z', 0),
+                    x=v.get('x', 0),
+                    y=v.get('y', 0),
+                    z=v.get('z', 0),
                     speed=speed,
-                    yaw=yaw_rad,
+                    yaw=yaw,
                     vx=vx,
                     vy=vy,
-                    throttle=v.get('control', {}).get('throttle', 0),
-                    brake=v.get('control', {}).get('brake', 0),
-                    steer=v.get('control', {}).get('steer', 0),
+                    throttle=v.get('throttle', 0),
+                    brake=v.get('brake', 0),
+                    steer=v.get('steer', 0),
                 )
                 entities.append(entity)
             except Exception as e:
@@ -147,12 +150,22 @@ class SnapshotBuilder:
         entities = []
         for tl in raw_tls:
             try:
+                # 支持嵌套和扁平两种格式
+                if 'location' in tl:
+                    x = tl['location'].get('x', 0)
+                    y = tl['location'].get('y', 0)
+                    z = tl['location'].get('z', 0)
+                else:
+                    x = tl.get('x', 0)
+                    y = tl.get('y', 0)
+                    z = tl.get('z', 0)
+                
                 entity = TrafficLightEntity(
-                    entity_id=f"tl_{tl.get('id', 'unknown')}",
+                    entity_id=f"tl_{tl.get('entity_id', tl.get('id', 'unknown'))}",
                     entity_type=EntityType.TRAFFIC_LIGHT,
-                    x=tl.get('location', {}).get('x', 0),
-                    y=tl.get('location', {}).get('y', 0),
-                    z=tl.get('location', {}).get('z', 0),
+                    x=x,
+                    y=y,
+                    z=z,
                     state=tl.get('state', 'Green'),
                 )
                 entities.append(entity)
