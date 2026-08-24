@@ -4,126 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ADS Safety Platform - 可视化检测效果展示</title>
-    <script>
-        // Chart.js fallback - if CDN fails, use simple canvas rendering
-        window.Chart = window.Chart || {
-            defaults: {},
-            register: function() {},
-            _adapters: []
-        };
-        
-        // Simple chart rendering fallback
-        if (typeof Chart !== 'function') {
-            console.log('Using fallback chart rendering');
-            window.Chart = function(ctx, config) {
-                this.ctx = ctx;
-                this.config = config;
-                this.render = function() {
-                    const canvas = this.ctx.canvas;
-                    const width = canvas.width;
-                    const height = canvas.height;
-                    const ctx2d = this.ctx;
-                    
-                    // Clear
-                    ctx2d.clearRect(0, 0, width, height);
-                    
-                    // Draw simple line chart
-                    if (config.type === 'line') {
-                        const data = config.data.datasets[0].data;
-                        const labels = config.data.labels;
-                        const stepX = width / (data.length - 1);
-                        const maxY = Math.max(...data);
-                        const scaleY = height / maxY;
-                        
-                        ctx2d.beginPath();
-                        ctx2d.strokeStyle = config.data.datasets[0].borderColor || '#667eea';
-                        ctx2d.lineWidth = 2;
-                        
-                        data.forEach((value, index) => {
-                            const x = index * stepX;
-                            const y = height - value * scaleY;
-                            if (index === 0) {
-                                ctx2d.moveTo(x, y);
-                            } else {
-                                ctx2d.lineTo(x, y);
-                            }
-                        });
-                        ctx2d.stroke();
-                    }
-                    
-                    // Draw doughnut chart
-                    if (config.type === 'doughnut') {
-                        const data = config.data.datasets[0].data;
-                        const colors = config.data.datasets[0].backgroundColor;
-                        const total = data.reduce((a, b) => a + b, 0);
-                        let startAngle = 0;
-                        
-                        data.forEach((value, index) => {
-                            const endAngle = startAngle + (value / total) * Math.PI * 2;
-                            ctx2d.beginPath();
-                            ctx2d.moveTo(width/2, height/2);
-                            ctx2d.arc(width/2, height/2, Math.min(width, height)/2 - 20, startAngle, endAngle);
-                            ctx2d.closePath();
-                            ctx2d.fillStyle = colors[index];
-                            ctx2d.fill();
-                            startAngle = endAngle;
-                        });
-                    }
-                    
-                    // Draw bar chart
-                    if (config.type === 'bar') {
-                        const data = config.data.datasets[0].data;
-                        const labels = config.data.labels;
-                        const colors = config.data.datasets[0].backgroundColor;
-                        const barWidth = width / data.length - 10;
-                        const maxY = Math.max(...data);
-                        const scaleY = height / maxY;
-                        
-                        data.forEach((value, index) => {
-                            const x = index * (barWidth + 10) + 5;
-                            const barHeight = value * scaleY;
-                            ctx2d.fillStyle = colors[index];
-                            ctx2d.fillRect(x, height - barHeight, barWidth, barHeight);
-                        });
-                    }
-                    
-                    // Draw radar chart
-                    if (config.type === 'radar') {
-                        const data = config.data.datasets[0].data;
-                        const labels = config.data.labels;
-                        const centerX = width / 2;
-                        const centerY = height / 2;
-                        const maxRadius = Math.min(width, height) / 2 - 20;
-                        const maxValue = Math.max(...data);
-                        
-                        ctx2d.beginPath();
-                        ctx2d.strokeStyle = config.data.datasets[0].borderColor || '#667eea';
-                        ctx2d.lineWidth = 2;
-                        
-                        const angleStep = Math.PI * 2 / data.length;
-                        data.forEach((value, index) => {
-                            const angle = index * angleStep - Math.PI / 2;
-                            const radius = (value / maxValue) * maxRadius;
-                            const x = centerX + Math.cos(angle) * radius;
-                            const y = centerY + Math.sin(angle) * radius;
-                            
-                            if (index === 0) {
-                                ctx2d.moveTo(x, y);
-                            } else {
-                                ctx2d.lineTo(x, y);
-                            }
-                        });
-                        ctx2d.closePath();
-                        ctx2d.stroke();
-                        ctx2d.fillStyle = config.data.datasets[0].backgroundColor || 'rgba(102, 126, 234, 0.2)';
-                        ctx2d.fill();
-                    }
-                };
-                this.render();
-            };
-        }
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -1292,6 +1172,292 @@
     </div>
 
     <script>
+        // ============================================
+        // CANVAS CHART LIBRARY (Pure JavaScript, No Dependencies)
+        // ============================================
+        
+        class SimpleChart {
+            constructor(canvas, config) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.config = config;
+                this.resize();
+                this.render();
+                window.addEventListener('resize', () => this.resize());
+            }
+            
+            resize() {
+                const container = this.canvas.parentElement;
+                this.canvas.width = container.clientWidth;
+                this.canvas.height = container.clientHeight;
+                this.render();
+            }
+            
+            render() {
+                const { type, data, options } = this.config;
+                const { width, height } = this.canvas;
+                const ctx = this.ctx;
+                
+                // Clear
+                ctx.clearRect(0, 0, width, height);
+                
+                if (type === 'line') {
+                    this.renderLineChart(width, height);
+                } else if (type === 'doughnut') {
+                    this.renderDoughnutChart(width, height);
+                } else if (type === 'bar') {
+                    this.renderBarChart(width, height);
+                } else if (type === 'radar') {
+                    this.renderRadarChart(width, height);
+                }
+            }
+            
+            renderLineChart(width, height) {
+                const { labels, datasets } = this.config.data;
+                const primary = datasets[0];
+                const padding = { top: 20, right: 20, bottom: 40, left: 50 };
+                const chartWidth = width - padding.left - padding.right;
+                const chartHeight = height - padding.top - padding.bottom;
+                const ctx = this.ctx;
+                
+                // Draw grid
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.lineWidth = 1;
+                for (let i = 0; i <= 4; i++) {
+                    const y = padding.top + (i / 4) * chartHeight;
+                    ctx.beginPath();
+                    ctx.moveTo(padding.left, y);
+                    ctx.lineTo(width - padding.right, y);
+                    ctx.stroke();
+                    // Label
+                    const value = (1 - i / 4).toFixed(2);
+                    ctx.fillStyle = '#a0a0a0';
+                    ctx.font = '11px sans-serif';
+                    ctx.textAlign = 'right';
+                    ctx.fillText(value, padding.left - 8, y + 3);
+                }
+                
+                // Draw lines
+                datasets.forEach(dataset => {
+                    ctx.beginPath();
+                    ctx.strokeStyle = dataset.borderColor || '#667eea';
+                    ctx.lineWidth = dataset.borderWidth || 2;
+                    
+                    const points = dataset.data.map((value, index) => {
+                        const x = padding.left + (index / (dataset.data.length - 1)) * chartWidth;
+                        const y = padding.top + (1 - value) * chartHeight;
+                        return { x, y, value };
+                    });
+                    
+                    points.forEach((p, i) => {
+                        if (i === 0) {
+                            ctx.moveTo(p.x, p.y);
+                        } else {
+                            ctx.lineTo(p.x, p.y);
+                        }
+                    });
+                    ctx.stroke();
+                    
+                    // Fill area for primary dataset
+                    if (dataset === primary && dataset.backgroundColor) {
+                        ctx.fillStyle = dataset.backgroundColor;
+                        ctx.lineTo(width - padding.right, padding.top + chartHeight);
+                        ctx.lineTo(padding.left, padding.top + chartHeight);
+                        ctx.closePath();
+                        ctx.fill();
+                    }
+                    
+                    // Draw points
+                    if (dataset.pointBackgroundColor) {
+                        points.forEach(p => {
+                            ctx.beginPath();
+                            ctx.fillStyle = dataset.pointBackgroundColor;
+                            ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+                            ctx.fill();
+                        });
+                    }
+                });
+                
+                // Draw labels
+                labels.forEach((label, index) => {
+                    const x = padding.left + (index / (labels.length - 1)) * chartWidth;
+                    ctx.fillStyle = '#a0a0a0';
+                    ctx.font = '11px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(label, x, height - 10);
+                });
+            }
+            
+            renderDoughnutChart(width, height) {
+                const { labels, datasets } = this.config.data;
+                const dataset = datasets[0];
+                const data = dataset.data;
+                const colors = dataset.backgroundColor;
+                const total = data.reduce((a, b) => a + b, 0);
+                const centerX = width / 2;
+                const centerY = height / 2;
+                const radius = Math.min(width, height) / 2 * 0.6;
+                const ctx = this.ctx;
+                
+                let startAngle = -Math.PI / 2;
+                
+                data.forEach((value, index) => {
+                    const endAngle = startAngle + (value / total) * Math.PI * 2;
+                    ctx.beginPath();
+                    ctx.moveTo(centerX, centerY);
+                    ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+                    ctx.closePath();
+                    ctx.fillStyle = colors[index];
+                    ctx.fill();
+                    
+                    // Draw label
+                    const midAngle = (startAngle + endAngle) / 2;
+                    const labelX = centerX + Math.cos(midAngle) * radius * 0.7;
+                    const labelY = centerY + Math.sin(midAngle) * radius * 0.7;
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '11px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(`${((value/total)*100).toFixed(1)}%`, labelX, labelY);
+                    
+                    startAngle = endAngle;
+                });
+                
+                // Draw legend
+                let legendY = height - 20;
+                data.forEach((value, index) => {
+                    ctx.fillStyle = colors[index];
+                    ctx.fillRect(30, legendY - 10, 12, 12);
+                    ctx.fillStyle = '#a0a0a0';
+                    ctx.font = '11px sans-serif';
+                    ctx.textAlign = 'left';
+                    ctx.fillText(`${labels[index]}: ${value}`, 48, legendY);
+                    legendY -= 20;
+                });
+            }
+            
+            renderBarChart(width, height) {
+                const { labels, datasets } = this.config.data;
+                const dataset = datasets[0];
+                const data = dataset.data;
+                const colors = dataset.backgroundColor;
+                const maxValue = Math.max(...data);
+                const padding = { top: 20, right: 20, bottom: 40, left: 50 };
+                const chartWidth = width - padding.left - padding.right;
+                const chartHeight = height - padding.top - padding.bottom;
+                const barWidth = chartWidth / data.length * 0.7;
+                const barSpacing = chartWidth / data.length * 0.3;
+                const ctx = this.ctx;
+                
+                // Draw grid
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.lineWidth = 1;
+                for (let i = 0; i <= 4; i++) {
+                    const y = padding.top + (1 - i / 4) * chartHeight;
+                    ctx.beginPath();
+                    ctx.moveTo(padding.left, y);
+                    ctx.lineTo(width - padding.right, y);
+                    ctx.stroke();
+                    const value = (maxValue * i / 4).toFixed(1);
+                    ctx.fillStyle = '#a0a0a0';
+                    ctx.font = '11px sans-serif';
+                    ctx.textAlign = 'right';
+                    ctx.fillText(value, padding.left - 8, y + 3);
+                }
+                
+                // Draw bars
+                data.forEach((value, index) => {
+                    const barHeight = (value / maxValue) * chartHeight;
+                    const x = padding.left + index * (barWidth + barSpacing) + barSpacing / 2;
+                    const y = padding.top + chartHeight - barHeight;
+                    
+                    ctx.fillStyle = colors[index];
+                    ctx.fillRect(x, y, barWidth, barHeight);
+                    
+                    // Label
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '11px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(value.toFixed(1), x + barWidth / 2, y - 5);
+                });
+                
+                // Draw x-axis labels
+                labels.forEach((label, index) => {
+                    const x = padding.left + index * (barWidth + barSpacing) + barSpacing / 2 + barWidth / 2;
+                    ctx.fillStyle = '#a0a0a0';
+                    ctx.font = '11px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(label, x, height - 10);
+                });
+            }
+            
+            renderRadarChart(width, height) {
+                const { labels, datasets } = this.config.data;
+                const dataset = datasets[0];
+                const data = dataset.data;
+                const maxValue = Math.max(...data);
+                const centerX = width / 2;
+                const centerY = height / 2;
+                const radius = Math.min(width, height) / 2 * 0.7;
+                const ctx = this.ctx;
+                
+                // Draw grid
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.lineWidth = 1;
+                for (let i = 1; i <= 4; i++) {
+                    const r = radius * i / 4;
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.fillStyle = '#a0a0a0';
+                    ctx.font = '11px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(Math.round(maxValue * i / 4), centerX + r, centerY - 5);
+                }
+                
+                // Draw axes
+                const angleStep = Math.PI * 2 / data.length;
+                for (let i = 0; i < data.length; i++) {
+                    const angle = i * angleStep - Math.PI / 2;
+                    ctx.beginPath();
+                    ctx.moveTo(centerX, centerY);
+                    ctx.lineTo(centerX + Math.cos(angle) * radius, centerY + Math.sin(angle) * radius);
+                    ctx.stroke();
+                    
+                    // Label
+                    ctx.fillStyle = '#a0a0a0';
+                    ctx.font = '11px sans-serif';
+                    ctx.textAlign = 'center';
+                    const labelX = centerX + Math.cos(angle) * radius * 1.1;
+                    const labelY = centerY + Math.sin(angle) * radius * 1.1;
+                    ctx.fillText(labels[i], labelX, labelY);
+                }
+                
+                // Draw data
+                ctx.beginPath();
+                ctx.strokeStyle = dataset.borderColor || '#667eea';
+                ctx.lineWidth = 2;
+                
+                data.forEach((value, index) => {
+                    const angle = index * angleStep - Math.PI / 2;
+                    const r = (value / maxValue) * radius;
+                    const x = centerX + Math.cos(angle) * r;
+                    const y = centerY + Math.sin(angle) * r;
+                    
+                    if (index === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                });
+                ctx.closePath();
+                ctx.stroke();
+                
+                // Fill
+                ctx.fillStyle = dataset.backgroundColor || 'rgba(102, 126, 234, 0.2)';
+                ctx.fill();
+            }
+        }
+        
         // Tab switching for detection results
         function showDetectionTab(tabName) {
             const tabs = document.querySelectorAll('#detection .tab-content');
@@ -1434,165 +1600,6 @@
             });
         }
 
-        // Charts
-        function initCharts() {
-            // Risk Index Chart
-            const riskCtx = document.getElementById('riskChart');
-            new Chart(riskCtx, {
-                type: 'line',
-                data: {
-                    labels: ['Frame 30', 'Frame 35', 'Frame 40', 'Frame 42', 'Frame 45'],
-                    datasets: [{
-                        label: '风险指数',
-                        data: [0.45, 0.52, 0.68, 0.82, 0.75],
-                        borderColor: '#ff6b6b',
-                        backgroundColor: 'rgba(255, 107, 107, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4
-                    }, {
-                        label: '纵向风险',
-                        data: [0.35, 0.42, 0.65, 0.91, 0.80],
-                        borderColor: '#3498db',
-                        backgroundColor: 'transparent',
-                        borderWidth: 2,
-                        tension: 0.4
-                    }, {
-                        label: '横向风险',
-                        data: [0.25, 0.28, 0.32, 0.25, 0.20],
-                        borderColor: '#2ecc71',
-                        backgroundColor: 'transparent',
-                        borderWidth: 2,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            labels: { color: '#e0e0e0' }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            ticks: { color: '#a0a0a0' },
-                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
-                        },
-                        y: {
-                            ticks: { color: '#a0a0a0' },
-                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                            min: 0,
-                            max: 1
-                        }
-                    }
-                }
-            });
-
-            // Violation Chart
-            const violationCtx = document.getElementById('violationChart');
-            new Chart(violationCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['纵向安全距离不足', '红灯未停车', '交叉口优先权', '变道警告', '近距离警告'],
-                    datasets: [{
-                        data: [1247, 892, 456, 321, 289],
-                        backgroundColor: [
-                            '#ff6b6b',
-                            '#e74c3c',
-                            '#ffd93d',
-                            '#3498db',
-                            '#2ecc71'
-                        ],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'right',
-                            labels: { color: '#e0e0e0' }
-                        }
-                    }
-                }
-            });
-
-            // Performance Chart
-            const performanceCtx = document.getElementById('performanceChart');
-            new Chart(performanceCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['串行执行', '并行执行', '带缓存', 'ROI滤波'],
-                    datasets: [{
-                        label: '处理时间 (ms)',
-                        data: [32.5, 8.3, 6.2, 4.8],
-                        backgroundColor: [
-                            'rgba(255, 107, 107, 0.7)',
-                            'rgba(52, 152, 219, 0.7)',
-                            'rgba(46, 204, 113, 0.7)',
-                            'rgba(155, 89, 182, 0.7)'
-                        ],
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            labels: { color: '#e0e0e0' }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            ticks: { color: '#a0a0a0' },
-                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
-                        },
-                        y: {
-                            ticks: { color: '#a0a0a0' },
-                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
-                        }
-                    }
-                }
-            });
-
-            // RSS Chart
-            const rssCtx = document.getElementById('rssChart');
-            new Chart(rssCtx, {
-                type: 'radar',
-                data: {
-                    labels: ['纵向安全', '横向安全', '交叉口', '行人保护', '风险指数', '交通规则'],
-                    datasets: [{
-                        label: 'RSS规则检测',
-                        data: [95, 88, 92, 85, 90, 88],
-                        backgroundColor: 'rgba(102, 126, 234, 0.2)',
-                        borderColor: '#667eea',
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            labels: { color: '#e0e0e0' }
-                        }
-                    },
-                    scales: {
-                        r: {
-                            ticks: { color: '#a0a0a0' },
-                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                            angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
-                            min: 0,
-                            max: 100
-                        }
-                    }
-                }
-            });
-        }
-
         // Case detail modal
         function showCaseDetail(caseNum) {
             const cases = {
@@ -1666,7 +1673,79 @@
         document.addEventListener('DOMContentLoaded', function() {
             animateScene();
             renderKnowledgeGraph();
-            initCharts();
+            
+            // Initialize charts
+            new SimpleChart(document.getElementById('riskChart'), {
+                type: 'line',
+                data: {
+                    labels: ['Frame 30', 'Frame 35', 'Frame 40', 'Frame 42', 'Frame 45'],
+                    datasets: [{
+                        label: '风险指数',
+                        data: [0.45, 0.52, 0.68, 0.82, 0.75],
+                        borderColor: '#ff6b6b',
+                        backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#ff6b6b'
+                    }, {
+                        label: '纵向风险',
+                        data: [0.35, 0.42, 0.65, 0.91, 0.80],
+                        borderColor: '#3498db',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2
+                    }, {
+                        label: '横向风险',
+                        data: [0.25, 0.28, 0.32, 0.25, 0.20],
+                        borderColor: '#2ecc71',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2
+                    }]
+                }
+            });
+
+            new SimpleChart(document.getElementById('violationChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['纵向安全距离不足', '红灯未停车', '交叉口优先权', '变道警告', '近距离警告'],
+                    datasets: [{
+                        data: [1247, 892, 456, 321, 289],
+                        backgroundColor: [
+                            '#ff6b6b',
+                            '#e74c3c',
+                            '#ffd93d',
+                            '#3498db',
+                            '#2ecc71'
+                        ]
+                    }]
+                }
+            });
+
+            new SimpleChart(document.getElementById('performanceChart'), {
+                type: 'bar',
+                data: {
+                    labels: ['串行执行', '并行执行', '带缓存', 'ROI滤波'],
+                    datasets: [{
+                        data: [32.5, 8.3, 6.2, 4.8],
+                        backgroundColor: [
+                            'rgba(255, 107, 107, 0.7)',
+                            'rgba(52, 152, 219, 0.7)',
+                            'rgba(46, 204, 113, 0.7)',
+                            'rgba(155, 89, 182, 0.7)'
+                        ]
+                    }]
+                }
+            });
+
+            new SimpleChart(document.getElementById('rssChart'), {
+                type: 'radar',
+                data: {
+                    labels: ['纵向安全', '横向安全', '交叉口', '行人保护', '风险指数', '交通规则'],
+                    datasets: [{
+                        data: [95, 88, 92, 85, 90, 88],
+                        backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                        borderColor: '#667eea'
+                    }]
+                }
+            });
             
             // Smooth scroll
             document.querySelectorAll('a[href^="#"]').forEach(anchor => {
