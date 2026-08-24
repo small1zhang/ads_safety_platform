@@ -14,9 +14,17 @@ from .lateral import (
 
 from .intersection import (
     check_merge_priority,
-    check_intersection_merge_priority,
     check_merge_safe_distance,
     check_rss_based_priority,
+    check_right_of_way_by_position,
+    check_intersection_priority,
+    check_intersection_merge_priority,  # 向后兼容
+    RCPPParams,
+    RCPPPlanner,
+    VehicleState,
+    IntersectionType,
+    RightOfWayRule,
+    IntersectionContext,
     IntersectionRSSModel,
 )
 
@@ -50,8 +58,16 @@ __all__ = [
     # Intersection (交叉口)
     "IntersectionRSSModel",
     "check_merge_priority",
-    "check_intersection_merge_priority",
     "check_merge_safe_distance",
+    "check_right_of_way_by_position",
+    "check_intersection_priority",
+    "check_intersection_merge_priority",  # 向后兼容
+    "RCPPParams",
+    "RCPPPlanner",
+    "VehicleState",
+    "IntersectionType",
+    "RightOfWayRule",
+    "IntersectionContext",
     
     # Risk Index (风险指数)
     "RiskParams",
