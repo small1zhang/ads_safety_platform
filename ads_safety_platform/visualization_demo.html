@@ -4,6 +4,125 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ADS Safety Platform - 可视化检测效果展示</title>
+    <script>
+        // Chart.js fallback - if CDN fails, use simple canvas rendering
+        window.Chart = window.Chart || {
+            defaults: {},
+            register: function() {},
+            _adapters: []
+        };
+        
+        // Simple chart rendering fallback
+        if (typeof Chart !== 'function') {
+            console.log('Using fallback chart rendering');
+            window.Chart = function(ctx, config) {
+                this.ctx = ctx;
+                this.config = config;
+                this.render = function() {
+                    const canvas = this.ctx.canvas;
+                    const width = canvas.width;
+                    const height = canvas.height;
+                    const ctx2d = this.ctx;
+                    
+                    // Clear
+                    ctx2d.clearRect(0, 0, width, height);
+                    
+                    // Draw simple line chart
+                    if (config.type === 'line') {
+                        const data = config.data.datasets[0].data;
+                        const labels = config.data.labels;
+                        const stepX = width / (data.length - 1);
+                        const maxY = Math.max(...data);
+                        const scaleY = height / maxY;
+                        
+                        ctx2d.beginPath();
+                        ctx2d.strokeStyle = config.data.datasets[0].borderColor || '#667eea';
+                        ctx2d.lineWidth = 2;
+                        
+                        data.forEach((value, index) => {
+                            const x = index * stepX;
+                            const y = height - value * scaleY;
+                            if (index === 0) {
+                                ctx2d.moveTo(x, y);
+                            } else {
+                                ctx2d.lineTo(x, y);
+                            }
+                        });
+                        ctx2d.stroke();
+                    }
+                    
+                    // Draw doughnut chart
+                    if (config.type === 'doughnut') {
+                        const data = config.data.datasets[0].data;
+                        const colors = config.data.datasets[0].backgroundColor;
+                        const total = data.reduce((a, b) => a + b, 0);
+                        let startAngle = 0;
+                        
+                        data.forEach((value, index) => {
+                            const endAngle = startAngle + (value / total) * Math.PI * 2;
+                            ctx2d.beginPath();
+                            ctx2d.moveTo(width/2, height/2);
+                            ctx2d.arc(width/2, height/2, Math.min(width, height)/2 - 20, startAngle, endAngle);
+                            ctx2d.closePath();
+                            ctx2d.fillStyle = colors[index];
+                            ctx2d.fill();
+                            startAngle = endAngle;
+                        });
+                    }
+                    
+                    // Draw bar chart
+                    if (config.type === 'bar') {
+                        const data = config.data.datasets[0].data;
+                        const labels = config.data.labels;
+                        const colors = config.data.datasets[0].backgroundColor;
+                        const barWidth = width / data.length - 10;
+                        const maxY = Math.max(...data);
+                        const scaleY = height / maxY;
+                        
+                        data.forEach((value, index) => {
+                            const x = index * (barWidth + 10) + 5;
+                            const barHeight = value * scaleY;
+                            ctx2d.fillStyle = colors[index];
+                            ctx2d.fillRect(x, height - barHeight, barWidth, barHeight);
+                        });
+                    }
+                    
+                    // Draw radar chart
+                    if (config.type === 'radar') {
+                        const data = config.data.datasets[0].data;
+                        const labels = config.data.labels;
+                        const centerX = width / 2;
+                        const centerY = height / 2;
+                        const maxRadius = Math.min(width, height) / 2 - 20;
+                        const maxValue = Math.max(...data);
+                        
+                        ctx2d.beginPath();
+                        ctx2d.strokeStyle = config.data.datasets[0].borderColor || '#667eea';
+                        ctx2d.lineWidth = 2;
+                        
+                        const angleStep = Math.PI * 2 / data.length;
+                        data.forEach((value, index) => {
+                            const angle = index * angleStep - Math.PI / 2;
+                            const radius = (value / maxValue) * maxRadius;
+                            const x = centerX + Math.cos(angle) * radius;
+                            const y = centerY + Math.sin(angle) * radius;
+                            
+                            if (index === 0) {
+                                ctx2d.moveTo(x, y);
+                            } else {
+                                ctx2d.lineTo(x, y);
+                            }
+                        });
+                        ctx2d.closePath();
+                        ctx2d.stroke();
+                        ctx2d.fillStyle = config.data.datasets[0].backgroundColor || 'rgba(102, 126, 234, 0.2)';
+                        ctx2d.fill();
+                    }
+                };
+                this.render();
+            };
+        }
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * {
