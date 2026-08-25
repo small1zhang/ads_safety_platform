@@ -31,9 +31,9 @@ sys.path.insert(0, str(Path(__file__).parent))
 from realtime_carla_collector import (
     RealTimeCollector, 
     AnomalyResult, 
-    CollectedData,
-    KnowledgeGraphGenerator
+    CollectedData
 )
+from svg_knowledge_graph import generate_svg_knowledge_graph, create_kg_data_from_anomalies
 
 
 class MultiAnomalyRenderer:
@@ -60,9 +60,40 @@ class MultiAnomalyRenderer:
                 'timestamp': anomaly.timestamp
             })
         
-        # 生成知识图谱
+        # 生成知识图谱（使用SVG版本）
         kg_path = out_path.parent / f"knowledge_graph_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html"
-        await KnowledgeGraphGenerator.generate_knowledge_graph_async(data, str(kg_path))
+        
+        # 转换异常数据为字典列表
+        anomalies_data = []
+        for anomaly in data.anomalies:
+            anomalies_data.append({
+                'scenario_id': anomaly.scenario_id,
+                'scenario_name': anomaly.scenario_name,
+                'timestamp': anomaly.timestamp,
+                'ego_x': anomaly.ego_x,
+                'ego_y': anomaly.ego_y,
+                'ego_speed': anomaly.ego_speed,
+                'vehicle_count': anomaly.vehicle_count,
+                'violations': [
+                    {
+                        'code': v.get('code', 'N/A'),
+                        'rule': v.get('rule', 'N/A'),
+                        'message': v.get('message', ''),
+                        'level': v.get('level', 'medium')
+                    }
+                    for v in anomaly.violations
+                ],
+                'risk_index': anomaly.risk_index,
+                'risk_level': anomaly.risk_level,
+                'scenario_type': anomaly.scenario_type,
+                'duration_ms': anomaly.duration_ms
+            })
+        
+        # 创建SVG知识图谱数据
+        kg_data = create_kg_data_from_anomalies(anomalies_data)
+        
+        # 生成SVG HTML
+        generate_svg_knowledge_graph(kg_data, str(kg_path))
         
         # 生成Dashboard
         html = self._generate_dashboard_html(data, detail_pages, str(kg_path))

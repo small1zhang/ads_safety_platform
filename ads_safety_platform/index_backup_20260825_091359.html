@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADS Safety Platform - 自动驾驶安全验证平台</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 30px 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 40px;
+            border-radius: 15px;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logo-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .logo-text h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .logo-text p {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+            gap: 30px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #2c3e50;
+            font-weight: 500;
+            font-size: 16px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        nav a:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 60px 50px;
+            margin-bottom: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        .hero h1 {
+            font-size: 48px;
+            font-weight: 800;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+
+        .hero p {
+            font-size: 20px;
+            color: #7f8c8d;
+            line-height: 1.8;
+            margin-bottom: 30px;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-radius: 15px;
+            min-width: 120px;
+        }
+
+        .stat-number {
+            font-size: 36px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #7f8c8d;
+            font-weight: 500;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.9);
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        /* Features Section */
+        .section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 60px 50px;
+            margin-bottom: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 36px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            font-size: 18px;
+            color: #7f8c8d;
+            margin-bottom: 50px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 15px;
+            padding: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .feature-card p {
+            color: #7f8c8d;
+            line-height: 1.6;
+        }
+
+        /* Architecture Diagram */
+        .architecture {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+            border-radius: 15px;
+            padding: 40px;
+            margin: 40px 0;
+        }
+
+        .architecture h3 {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+
+        .arch-diagram {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .arch-layer {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .layer-box {
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 15px 25px;
+            font-weight: 600;
+            color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+        }
+
+        .arrow {
+            color: #667eea;
+            font-size: 24px;
+        }
+
+        /* Visualization Demo */
+        .demo-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 40px;
+            margin: 40px 0;
+        }
+
+        .demo-section h3 {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 30px;
+        }
+
+        .demo-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .tab-button {
+            padding: 12px 24px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #7f8c8d;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .tab-button:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .demo-canvas {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .scene-canvas {
+            width: 100%;
+            height: 400px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .vehicle {
+            position: absolute;
+            width: 40px;
+            height: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 5px;
+            transform-origin: center;
+        }
+
+        .vehicle.ego {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        .vehicle::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 100%;
+            width: 0;
+            height: 0;
+            border-left: 10px solid #667eea;
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+        }
+
+        .road {
+            position: absolute;
+            background: #34495e;
+            height: 100px;
+            width: 100%;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+        }
+
+        .road-marking {
+            position: absolute;
+            background: white;
+            height: 2px;
+            width: 100%;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+        }
+
+        .road-marking.dashed {
+            background: repeating-linear-gradient(
+                90deg,
+                white 0px,
+                white 20px,
+                transparent 20px,
+                transparent 40px
+            );
+        }
+
+        /* Code Demo */
+        .code-demo {
+            background: #282c34;
+            border-radius: 10px;
+            padding: 20px;
+            color: #abb2bf;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            overflow-x: auto;
+        }
+
+        .code-line {
+            padding: 2px 0;
+        }
+
+        .code-keyword {
+            color: #c678dd;
+        }
+
+        .code-string {
+            color: #98c379;
+        }
+
+        .code-comment {
+            color: #5c6370;
+        }
+
+        .code-number {
+            color: #d19a66;
+        }
+
+        /* Case Studies */
+        .case-studies {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .case-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .case-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .case-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .case-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .case-card h4 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .case-tag {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+
+        .case-card p {
+            color: #7f8c8d;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        /* Footer */
+        footer {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 40px 0;
+            border-radius: 20px;
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+
+        .footer-links a {
+            color: #7f8c8d;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .footer-links a:hover {
+            color: #667eea;
+        }
+
+        .footer-text {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            nav ul {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .hero h1 {
+                font-size: 36px;
+            }
+
+            .hero-stats {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .arch-layer {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .case-studies {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-links {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in-up {
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        /* Risk Indicator */
+        .risk-indicator {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin: 20px 0;
+        }
+
+        .risk-level {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .risk-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .risk-badge.high {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .risk-badge.medium {
+            background: #ffd93d;
+            color: #333;
+        }
+
+        .risk-badge.low {
+            background: #6bcb77;
+            color: white;
+        }
+
+        .risk-meter {
+            width: 200px;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .risk-meter-fill {
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.5s ease;
+        }
+
+        .risk-meter-fill.high {
+            background: linear-gradient(90deg, #ff6b6b, #ff4757);
+            width: 85%;
+        }
+
+        .risk-meter-fill.medium {
+            background: linear-gradient(90deg, #ffd93d, #ffb347);
+            width: 55%;
+        }
+
+        .risk-meter-fill.low {
+            background: linear-gradient(90deg, #6bcb77, #48bb78);
+            width: 25%;
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+            margin: 30px 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 10px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #667eea;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding: 20px 30px;
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -25px;
+            top: 25px;
+            width: 12px;
+            height: 12px;
+            background: #667eea;
+            border-radius: 50%;
+            border: 3px solid white;
+        }
+
+        .timeline-date {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .timeline-title {
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .timeline-description {
+            color: #7f8c8d;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="animate-fade-in-up">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">🚗</div>
+                    <div class="logo-text">
+                        <h1>ADS Safety Platform</h1>
+                        <p>自动驾驶安全验证平台</p>
+                    </div>
+                </div>
+                <nav>
+                    <ul>
+                        <li><a href="#features">功能特性</a></li>
+                        <li><a href="#architecture">系统架构</a></li>
+                        <li><a href="#demo">演示案例</a></li>
+                        <li><a href="#cases">应用案例</a></li>
+                        <li><a href="#timeline">开发历程</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="hero animate-fade-in-up">
+            <h1>🚀 自动驾驶安全的新标准</h1>
+            <p>基于知识图谱的自动驾驶安全验证平台，为您的自动驾驶系统提供全面的安全规则检测、风险评估和可解释性分析</p>
+            
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <div class="stat-number">37</div>
+                    <div class="stat-label">Python文件</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">32</div>
+                    <div class="stat-label">单元测试</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">10</div>
+                    <div class="stat-label">功能模块</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">15</div>
+                    <div class="stat-label">Git提交</div>
+                </div>
+            </div>
+            
+            <div class="cta-buttons">
+                <a href="#demo" class="btn btn-primary">👀 查看演示</a>
+                <a href="https://github.com/small1zhang/ads_safety_platform" class="btn btn-secondary">🔗 GitHub仓库</a>
+            </div>
+        </section>
+
+        <!-- Features Section -->
+        <section class="section animate-fade-in-up" id="features">
+            <h2 class="section-title">✨ 核心功能</h2>
+            <p class="section-subtitle">为自动驾驶系统提供全方位的安全保障</p>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🏗️</div>
+                    <h3>模块化架构</h3>
+                    <p>10个功能层，37个Python文件，清晰的模块划分，易于维护和扩展</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🛡️</div>
+                    <h3>RSS安全规则</h3>
+                    <p>完整实现RSS理论，包含纵向、横向、交叉口、行人等安全规则</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>高性能计算</h3>
+                    <p>并行计算、缓存机制、ROI滤波，支持实时处理</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>风险评估</h3>
+                    <p>连续风险指数计算，支持多维度风险分析</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📝</div>
+                    <h3>可解释性</h3>
+                    <p>自然语言报告生成，解释违规原因和风险来源</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🖼️</div>
+                    <h3>可视化</h3>
+                    <p>场景可视化、风险热力图、文本仪表盘</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Architecture Section -->
+        <section class="section animate-fade-in-up" id="architecture">
+            <h2 class="section-title">🏗️ 系统架构</h2>
+            <p class="section-subtitle">10层模块化设计，清晰的分工与协作</p>
+            
+            <div class="architecture">
+                <h3>📋 分层架构图</h3>
+                <div class="arch-diagram">
+                    <div class="arch-layer">
+                        <div class="layer-box">🎯 Ontology (本体层)</div>
+                    </div>
+                    <div class="arrow">↓</div>
+                    <div class="arch-layer">
+                        <div class="layer-box">📥 Extraction (提取层)</div>
+                        <div class="layer-box">🎭 Scenario (场景层)</div>
+                    </div>
+                    <div class="arrow">↓</div>
+                    <div class="arch-layer">
+                        <div class="layer-box">🚦 Behavior (行为层)</div>
+                        <div class="layer-box">🛡️ Rules (规则层)</div>
+                    </div>
+                    <div class="arrow">↓</div>
+                    <div class="arch-layer">
+                        <div class="layer-box">🔄 Dynamic (动态层)</div>
+                        <div class="layer-box">💾 Storage (存储层)</div>
+                        <div class="layer-box">📝 Explanation (可解释性层)</div>
+                    </div>
+                    <div class="arrow">↓</div>
+                    <div class="arch-layer">
+                        <div class="layer-box">⚡ Optimization (优化层)</div>
+                        <div class="layer-box">🖼️ Visualization (可视化层)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-top: 40px;">
+                <div>
+                    <h4 style="color: #667eea; margin-bottom: 15px;">🎯 本体层 (Ontology)</h4>
+                    <p style="color: #7f8c8d; line-height: 1.6;">定义14种实体类型和42种关系类型，构建知识图谱的基础</p>
+                    <ul style="color: #7f8c8d; margin-top: 10px; line-height: 1.6;">
+                        <li>车辆、行人、交通设施等实体</li>
+                        <li>场景、行为、规则等关系</li>
+                        <li>跨层关联关系</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 style="color: #667eea; margin-bottom: 15px;">📥 提取层 (Extraction)</h4>
+                    <p style="color: #7f8c8d; line-height: 1.6;">CARLA数据提取与标准化，支持平面和嵌套格式</p>
+                    <ul style="color: #7f8c8d; margin-top: 10px; line-height: 1.6;">
+                        <li>车辆数据提取</li>
+                        <li>行人数据提取</li>
+                        <li>交通灯状态提取</li>
+                        <li>场景快照生成</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 style="color: #667eea; margin-bottom: 15px;">🛡️ 规则层 (Rules)</h4>
+                    <p style="color: #7f8c8d; line-height: 1.6;">基于RSS理论的完整安全规则集</p>
+                    <ul style="color: #7f8c8d; margin-top: 10px; line-height: 1.6;">
+                        <li>纵向安全规则</li>
+                        <li>横向安全规则</li>
+                        <li>交叉口规则 (RCPP算法)</li>
+                        <li>行人保护规则</li>
+                        <li>风险指数计算</li>
+                        <li>交通规则 (R1-R3)</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Demo Section -->
+        <section class="section animate-fade-in-up" id="demo">
+            <h2 class="section-title">👀 交互式演示</h2>
+            <p class="section-subtitle">体验ADS Safety Platform的强大功能</p>
+            
+            <div class="demo-section">
+                <h3>🚗 场景可视化演示</h3>
+                <div class="demo-tabs">
+                    <button class="tab-button active" onclick="showTab('scene')">场景可视化</button>
+                    <button class="tab-button" onclick="showTab('code')">代码示例</button>
+                    <button class="tab-button" onclick="showTab('output')">检测结果</button>
+                </div>
+                
+                <div id="scene" class="tab-content active">
+                    <div class="demo-canvas">
+                        <div class="scene-canvas" id="sceneCanvas">
+                            <div class="road"></div>
+                            <div class="road-marking dashed"></div>
+                            <!-- Vehicles will be added by JavaScript -->
+                        </div>
+                    </div>
+                    <div class="risk-indicator">
+                        <div class="risk-level">
+                            <span>当前风险等级:</span>
+                            <span class="risk-badge low" id="riskBadge">LOW</span>
+                        </div>
+                        <div class="risk-meter">
+                            <div class="risk-meter-fill low" id="riskMeter"></div>
+                        </div>
+                        <div style="margin-left: 10px; color: #7f8c8d;">风险指数: <span id="riskIndex">0.25</span></div>
+                    </div>
+                </div>
+                
+                <div id="code" class="tab-content">
+                    <div class="code-demo">
+                        <div class="code-line"><span class="code-keyword">from</span> kg_core.extraction.pipeline <span class="code-keyword">import</span> ExtractionPipeline</div>
+                        <div class="code-line"><span class="code-keyword">from</span> kg_core.rules.generator <span class="code-keyword">import</span> RuleGenerator</div>
+                        <div class="code-line"><span class="code-keyword">from</span> kg_core.visualization <span class="code-keyword">import</span> SceneVisualizer</div>
+                        <div class="code-line"></div>
+                        <div class="code-line"># <span class="code-comment">初始化管道</span></div>
+                        <div class="code-line">pipeline = ExtractionPipeline()</div>
+                        <div class="code-line">rule_generator = RuleGenerator()</div>
+                        <div class="code-line">visualizer = SceneVisualizer()</div>
+                        <div class="code-line"></div>
+                        <div class="code-line"># <span class="code-comment">处理一帧数据</span></div>
+                        <div class="code-line">processed_frame = pipeline.process_frame(frame_data)</div>
+                        <div class="code-line">violations = rule_generator.check_frame(processed_frame)</div>
+                        <div class="code-line">visualizer.render(frame_data, violations)</div>
+                    </div>
+                </div>
+                
+                <div id="output" class="tab-content">
+                    <div class="code-demo" style="background: #f8f9fa; color: #333;">
+                        <div style="padding: 20px; border-radius: 8px; background: white;">
+                            <h4 style="color: #2c3e50; margin-bottom: 15px;">📋 安全检测报告</h4>
+                            <div style="margin-bottom: 15px;">
+                                <strong>时间戳:</strong> 1234567890<br>
+                                <strong>帧ID:</strong> 42<br>
+                                <strong>自车速度:</strong> 15.0 m/s (54.0 km/h)
+                            </div>
+                            <div style="background: #ffebee; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                                <strong style="color: #c62828;">⚠️ 违规检测 (2):</strong><br>
+                                1. <strong>RSS_LONGITUDINAL:</strong> 纵向安全距离不足<br>
+                                2. <strong>TRAFFIC_LIGHT:</strong> 红灯未停车
+                            </div>
+                            <div style="background: #e8f5e9; padding: 10px; border-radius: 5px;">
+                                <strong style="color: #2e7d32;">✅ 安全检查:</strong><br>
+                                - 横向安全距离: SAFE<br>
+                                - 碰撞风险: LOW<br>
+                                - 行人风险: NONE
+                            </div>
+                            <div style="margin-top: 15px; padding: 10px; background: #fff3e0; border-radius: 5px;">
+                                <strong>📊 风险评估:</strong><br>
+                                综合风险指数: <strong>0.82</strong> (HIGH)<br>
+                                纵向风险: 0.91 | 横向风险: 0.25 | 碰撞风险: 0.18
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Case Studies Section -->
+        <section class="section animate-fade-in-up" id="cases">
+            <h2 class="section-title">📚 应用案例</h2>
+            <p class="section-subtitle">在各种场景中的实际应用</p>
+            
+            <div class="case-studies">
+                <div class="case-card">
+                    <div class="case-header">
+                        <div class="case-icon">🚦</div>
+                        <div>
+                            <h4>交叉口安全</h4>
+                            <span class="case-tag">RCPP算法</span>
+                        </div>
+                    </div>
+                    <p>在复杂交叉口场景中，RCPP算法能够正确判断车辆优先权，避免碰撞，确保安全通过。</p>
+                </div>
+                <div class="case-card">
+                    <div class="case-header">
+                        <div class="case-icon">👥</div>
+                        <div>
+                            <h4>行人保护</h4>
+                            <span class="case-tag">RSS扩展</span>
+                        </div>
+                    </div>
+                    <p>检测行人横穿、接近等行为，及时提醒自动驾驶系统采取避让措施。</p>
+                </div>
+                <div class="case-card">
+                    <div class="case-header">
+                        <div class="case-icon">⚡</div>
+                        <div>
+                            <h4>性能优化</h4>
+                            <span class="case-tag">并行计算</span>
+                        </div>
+                    </div>
+                    <p>通过并行计算和缓存机制，将规则检测性能提升3-4倍，支持实时处理。</p>
+                </div>
+                <div class="case-card">
+                    <div class="case-header">
+                        <div class="case-icon">📊</div>
+                        <div>
+                            <h4>风险评估</h4>
+                            <span class="case-tag">连续指数</span>
+                        </div>
+                    </div>
+                    <p>实时计算连续风险指数，为决策系统提供量化的风险评估依据。</p>
+                </div>
+                <div class="case-card">
+                    <div class="case-header">
+                        <div class="case-icon">🎯</div>
+                        <div>
+                            <h4>CARLA集成</h4>
+                            <span class="case-tag">数据适配</span>
+                        </div>
+                    </div>
+                    <p>完整支持CARLA仿真数据格式，可直接用于仿真环境中的安全验证。</p>
+                </div>
+                <div class="case-card">
+                    <div class="case-header">
+                        <div class="case-icon">📝</div>
+                        <div>
+                            <h4>可解释性</h4>
+                            <span class="case-tag">自然语言</span>
+                        </div>
+                    </div>
+                    <p>生成详细的自然语言报告，解释每个违规的原因和风险等级。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Timeline Section -->
+        <section class="section animate-fade-in-up" id="timeline">
+            <h2 class="section-title">📅 开发历程</h2>
+            <p class="section-subtitle">从构思到实现的完整旅程</p>
+            
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-date">2026-08-19</div>
+                    <div class="timeline-title">🚀 项目启动</div>
+                    <div class="timeline-description">初始化Git仓库，设置项目结构，添加基础文档</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">2026-08-19</div>
+                    <div class="timeline-title">📦 Phase 1: 基础层</div>
+                    <div class="timeline-description">完成本体层、提取层、场景层的核心功能开发</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">2026-08-19</div>
+                    <div class="timeline-title">🎯 Phase 2: 核心层</div>
+                    <div class="timeline-description">完成行为层、规则层的开发，实现RSS安全规则</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">2026-08-19</div>
+                    <div class="timeline-title">🔄 Phase 3: 辅助层</div>
+                    <div class="timeline-description">完成动态层、存储层、可解释性层的开发</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">2026-08-19</div>
+                    <div class="timeline-title">⚡ Phase 4: 优化层</div>
+                    <div class="timeline-description">完成优化层开发，实现并行计算和ROI滤波</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">2026-08-19</div>
+                    <div class="timeline-title">🎨 完善功能</div>
+                    <div class="timeline-description">完善交叉口规则(RCPP算法)、可视化模块、单元测试</div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-date">2026-08-19</div>
+                    <div class="timeline-title">📝 文档完成</div>
+                    <div class="timeline-description">完成完整的项目文档，推送到GitHub</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="animate-fade-in-up">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <div class="logo-icon">🚗</div>
+                    <div>
+                        <h3>ADS Safety Platform</h3>
+                        <p>自动驾驶安全验证平台</p>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <a href="#features">功能特性</a>
+                    <a href="#architecture">系统架构</a>
+                    <a href="#demo">演示案例</a>
+                    <a href="#cases">应用案例</a>
+                    <a href="#timeline">开发历程</a>
+                    <a href="https://github.com/small1zhang/ads_safety_platform">GitHub</a>
+                </div>
+                <div class="footer-text">
+                    <p>© 2026 ADS Safety Platform. All rights reserved. | MIT License</p>
+                    <p style="margin-top: 10px;">
+                        <strong>维护者:</strong> Zhang Haibing |
+                        <strong>状态:</strong> ✅ 已完成 |
+                        <strong>版本:</strong> 0.1.0
+                    </p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Tab switching
+        function showTab(tabName) {
+            const tabs = document.querySelectorAll('.tab-content');
+            const buttons = document.querySelectorAll('.tab-button');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Scene animation
+        function animateScene() {
+            const sceneCanvas = document.getElementById('sceneCanvas');
+            const riskBadge = document.getElementById('riskBadge');
+            const riskMeter = document.getElementById('riskMeter');
+            const riskIndex = document.getElementById('riskIndex');
+            
+            // Clear existing vehicles
+            const existingVehicles = sceneCanvas.querySelectorAll('.vehicle');
+            existingVehicles.forEach(v => v.remove());
+            
+            // Create vehicles with animation
+            const vehicles = [
+                { id: 'ego', x: 50, y: 180, color: 'linear-gradient(135deg, #e74c3c 0%, #c0392b 100%)', isEgo: true },
+                { id: 'npc1', x: 20, y: 150, color: 'linear-gradient(135deg, #3498db 0%, #2980b9 100%)', isEgo: false },
+                { id: 'npc2', x: 80, y: 210, color: 'linear-gradient(135deg, #2ecc71 0%, #27ae60 100%)', isEgo: false },
+                { id: 'npc3', x: 30, y: 240, color: 'linear-gradient(135deg, #f39c12 0%, #e67e22 100%)', isEgo: false }
+            ];
+            
+            vehicles.forEach(v => {
+                const vehicle = document.createElement('div');
+                vehicle.className = `vehicle ${v.isEgo ? 'ego' : ''}`;
+                vehicle.style.left = `${v.x}%`;
+                vehicle.style.top = `${v.y}px`;
+                vehicle.style.background = v.color;
+                sceneCanvas.appendChild(vehicle);
+            });
+            
+            // Update risk indicator
+            const riskLevels = ['LOW'];
+            const riskColors = ['low'];
+            const riskValues = [0.25];
+            
+            let currentRisk = 0;
+            setInterval(() => {
+                currentRisk = (currentRisk + 1) % 3;
+                riskBadge.className = `risk-badge ${riskColors[currentRisk]}`;
+                riskBadge.textContent = riskLevels[currentRisk];
+                riskMeter.className = `risk-meter-fill ${riskColors[currentRisk]}`;
+                riskIndex.textContent = riskValues[currentRisk];
+            }, 3000);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            animateScene();
+            
+            // Smooth scroll for navigation
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
