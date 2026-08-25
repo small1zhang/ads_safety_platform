@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  # Backend service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: ads-safety-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/app:/app/app
+      - ./output:/app/output
+      - ./data:/app/data
+    environment:
+      - PYTHONUNBUFFERED=1
+      - CARLA_HOST=localhost
+      - CARLA_PORT=2000
+    networks:
+      - ads-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/api/health', timeout=3)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Frontend service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: ads-safety-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "5173:5173"
+    depends_on:
+      - backend
+    networks:
+      - ads-network
+    volumes:
+      - ./frontend/index.html:/usr/share/nginx/html/index.html
+      - ./output:/usr/share/nginx/html/output
+
+  # CARLA Server (optional - for real simulation)
+  carla:
+    image: carlasim/carla:0.9.14
+    container_name: ads-safety-carla
+    restart: unless-stopped
+    ports:
+      - "2000:2000"
+    environment:
+      - SDL_VIDEODRIVER=offscreen
+      - SDL_HINT_CUDA_DEVICE=0
+    volumes:
+      - ./carla-data:/root/.carla
+    networks:
+      - ads-network
+    profiles:
+      - carla
+
+networks:
+  ads-network:
+    driver: bridge
+
+volumes:
+  carla-data:
