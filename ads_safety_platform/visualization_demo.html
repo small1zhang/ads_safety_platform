@@ -3,1763 +3,239 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ADS Safety Platform - 可视化检测效果展示</title>
+    <title>ADS Safety Platform - 异常仪表盘</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-            min-height: 100vh;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
             color: #e0e0e0;
-            overflow-x: hidden;
-        }
-
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
+            margin: 0;
             padding: 20px;
         }
-
-        /* Header */
-        header {
-            background: rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-            padding: 20px 0;
-            border-bottom: 1px solid rgba(102, 126, 234, 0.3);
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
             margin-bottom: 30px;
         }
-
-        .header-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            max-width: 1600px;
-            margin: 0 auto;
-            padding: 0 40px;
+        .stat-item {
+            background: rgba(255,255,255,0.1);
+            padding: 15px 25px;
+            border-radius: 10px;
+            text-align: center;
         }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .logo-icon {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 20px;
-            font-weight: bold;
-        }
-
-        .logo-text h1 {
+        .stat-value {
             font-size: 24px;
-            font-weight: 700;
-            color: #fff;
-        }
-
-        .logo-text p {
-            color: #a0a0a0;
-            font-size: 12px;
-        }
-
-        nav ul {
-            display: flex;
-            list-style: none;
-            gap: 25px;
-        }
-
-        nav a {
-            text-decoration: none;
-            color: #a0a0a0;
-            font-weight: 500;
-            font-size: 14px;
-            padding: 8px 16px;
-            border-radius: 6px;
-            transition: all 0.3s ease;
-        }
-
-        nav a:hover {
-            background: rgba(102, 126, 234, 0.2);
+            font-weight: bold;
             color: #667eea;
         }
-
-        /* Main Title */
-        .main-title {
-            text-align: center;
-            padding: 40px 0;
-        }
-
-        .main-title h1 {
-            font-size: 42px;
-            font-weight: 800;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 15px;
-        }
-
-        .main-title p {
-            font-size: 18px;
-            color: #a0a0a0;
-        }
-
-        /* Dashboard Grid */
-        .dashboard {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 25px;
-            margin-bottom: 30px;
-        }
-
-        /* Cards */
-        .card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 25px;
-            transition: all 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(102, 126, 234, 0.5);
-            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.2);
-        }
-
-        .card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        .card-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .card-badge {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        .badge-success {
-            background: rgba(46, 204, 113, 0.2);
-            color: #2ecc71;
-        }
-
-        .badge-warning {
-            background: rgba(255, 217, 61, 0.2);
-            color: #ffd93d;
-        }
-
-        .badge-danger {
-            background: rgba(255, 107, 107, 0.2);
-            color: #ff6b6b;
-        }
-
-        .badge-info {
-            background: rgba(52, 152, 219, 0.2);
-            color: #3498db;
-        }
-
-        /* Stats */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .stat-item {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            padding: 15px;
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 28px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
         .stat-label {
             font-size: 12px;
-            color: #a0a0a0;
-            margin-top: 5px;
+            color: #aaa;
         }
-
-        /* Scene Visualization */
-        .scene-container {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 30px;
-        }
-
-        .scene-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        .scene-title {
-            font-size: 20px;
-            font-weight: 600;
-            color: #fff;
-        }
-
-        .scene-canvas {
-            width: 100%;
-            height: 400px;
-            background: #1a1a2e;
-            border-radius: 10px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .road {
-            position: absolute;
-            background: linear-gradient(90deg, #34495e 0%, #2c3e50 100%);
-            height: 120px;
-            width: 100%;
-            top: 50%;
-            left: 0;
-            transform: translateY(-50%);
-            border-top: 2px solid #4a4a4a;
-            border-bottom: 2px solid #4a4a4a;
-        }
-
-        .road-marking {
-            position: absolute;
-            height: 2px;
-            width: 100%;
-            top: 50%;
-            left: 0;
-            transform: translateY(-50%);
-        }
-
-        .road-marking.dashed {
-            background: repeating-linear-gradient(
-                90deg,
-                #667eea 0px,
-                #667eea 20px,
-                transparent 20px,
-                transparent 40px
-            );
-        }
-
-        .vehicle {
-            position: absolute;
-            width: 40px;
-            height: 20px;
-            border-radius: 5px;
-            transform-origin: center;
-            transition: all 0.5s ease;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-        }
-
-        .vehicle::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 100%;
-            width: 0;
-            height: 0;
-            border-left: 10px solid;
-            border-top: 5px solid transparent;
-            border-bottom: 5px solid transparent;
-        }
-
-        .vehicle.ego {
-            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-        }
-
-        .vehicle.ego::before {
-            border-left-color: #c0392b;
-        }
-
-        .vehicle.npc1 {
-            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-        }
-
-        .vehicle.npc1::before {
-            border-left-color: #2980b9;
-        }
-
-        .vehicle.npc2 {
-            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
-        }
-
-        .vehicle.npc2::before {
-            border-left-color: #27ae60;
-        }
-
-        .vehicle.npc3 {
-            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
-        }
-
-        .vehicle.npc3::before {
-            border-left-color: #e67e22;
-        }
-
-        .pedestrian {
-            position: absolute;
-            width: 15px;
-            height: 30px;
-            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
-            border-radius: 50%;
-            transform-origin: center;
-        }
-
-        .traffic-light {
-            position: absolute;
-            width: 20px;
-            height: 60px;
-            background: #34495e;
-            border-radius: 5px;
-        }
-
-        .traffic-light.red::after {
-            content: '';
-            position: absolute;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 10px;
-            height: 10px;
-            background: #e74c3c;
-            border-radius: 50%;
-            box-shadow: 0 0 10px #e74c3c;
-        }
-
-        .traffic-light.green::after {
-            content: '';
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 10px;
-            height: 10px;
-            background: #2ecc71;
-            border-radius: 50%;
-            box-shadow: 0 0 10px #2ecc71;
-        }
-
-        .risk-zone {
-            position: absolute;
-            border: 2px dashed;
-            border-radius: 50%;
-            opacity: 0.7;
-            animation: pulse 2s infinite;
-        }
-
-        .risk-zone.high {
-            border-color: #ff6b6b;
-            background: radial-gradient(circle, rgba(255, 107, 107, 0.1) 0%, transparent 70%);
-        }
-
-        .risk-zone.medium {
-            border-color: #ffd93d;
-            background: radial-gradient(circle, rgba(255, 217, 61, 0.1) 0%, transparent 70%);
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 0.7; }
-        }
-
-        /* Detection Results */
-        .results-container {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 30px;
-        }
-
-        .results-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .tab-button {
-            padding: 10px 20px;
-            background: transparent;
-            border: none;
-            color: #a0a0a0;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s ease;
-        }
-
-        .tab-button:hover {
-            color: #fff;
-        }
-
-        .tab-button.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        /* Violation List */
-        .violation-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .violation-item {
-            background: rgba(255, 255, 255, 0.05);
-            border-left: 4px solid;
-            border-radius: 8px;
-            padding: 15px;
-            transition: all 0.3s ease;
-        }
-
-        .violation-item:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .violation-item.high {
-            border-left-color: #ff6b6b;
-        }
-
-        .violation-item.medium {
-            border-left-color: #ffd93d;
-        }
-
-        .violation-item.low {
-            border-left-color: #6bcb77;
-        }
-
-        .violation-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-
-        .violation-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #fff;
-        }
-
-        .violation-code {
-            background: rgba(102, 126, 234, 0.2);
-            color: #667eea;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-family: monospace;
-        }
-
-        .violation-description {
-            font-size: 13px;
-            color: #a0a0a0;
-            line-height: 1.5;
-        }
-
-        /* Knowledge Graph */
-        .kg-container {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 30px;
-        }
-
-        .kg-canvas {
-            width: 100%;
-            height: 500px;
-            background: #1a1a2e;
-            border-radius: 10px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .kg-node {
-            position: absolute;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-        }
-
-        .kg-node:hover {
-            transform: scale(1.1);
-            box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
-        }
-
-        .kg-node.entity {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .kg-node.rule {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-        }
-
-        .kg-node.violation {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
-            color: white;
-        }
-
-        .kg-node.risk {
-            background: linear-gradient(135deg, #ffd93d 0%, #ffb347 100%);
-            color: #333;
-        }
-
-        .kg-edge {
-            position: absolute;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.3), transparent);
-            transform-origin: left center;
-        }
-
-        /* Charts */
-        .charts-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 25px;
-            margin-bottom: 30px;
-        }
-
-        .chart-card {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
-            padding: 25px;
-        }
-
-        .chart-card h3 {
-            font-size: 16px;
-            font-weight: 600;
-            color: #fff;
-            margin-bottom: 20px;
-        }
-
-        .chart-wrapper {
-            position: relative;
-            height: 300px;
-        }
-
-        /* RSS Rules Display */
-        .rss-container {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 30px;
-        }
-
-        .rss-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-        }
-
-        .rss-card {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            padding: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .rss-card h4 {
-            font-size: 14px;
-            font-weight: 600;
-            color: #667eea;
-            margin-bottom: 10px;
-        }
-
-        .rss-card p {
-            font-size: 12px;
-            color: #a0a0a0;
-            line-height: 1.5;
-        }
-
-        /* Case Studies */
-        .cases-container {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 30px;
-        }
-
-        .case-grid {
+        .anomalies-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
+            margin-bottom: 30px;
         }
-
-        .case-card {
-            background: rgba(255, 255, 255, 0.05);
+        .anomaly-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
             border-radius: 10px;
             padding: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
             cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .case-card:hover {
-            border-color: #667eea;
-            transform: translateY(-3px);
-        }
-
-        .case-card h4 {
-            font-size: 15px;
-            font-weight: 600;
-            color: #fff;
-            margin-bottom: 10px;
-        }
-
-        .case-card p {
-            font-size: 13px;
-            color: #a0a0a0;
-            line-height: 1.5;
-        }
-
-        /* Footer */
-        footer {
-            background: rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
             backdrop-filter: blur(10px);
-            padding: 30px 0;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            text-align: center;
-            margin-top: 50px;
         }
-
-        .footer-content {
-            max-width: 1600px;
-            margin: 0 auto;
-            padding: 0 40px;
+        .anomaly-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border-color: #667eea;
         }
-
-        .footer-text {
-            color: #a0a0a0;
-            font-size: 14px;
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.3);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 4px;
-        }
-
-        /* Responsive */
-        @media (max-width: 1200px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .header-content {
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            nav ul {
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-
-            .main-title h1 {
-                font-size: 32px;
-            }
-
-            .dashboard {
-                grid-template-columns: 1fr;
-            }
-
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .scene-canvas {
-                height: 300px;
-            }
-
-            .kg-canvas {
-                height: 350px;
-            }
-
-            .charts-container {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Animations */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .animate-fade-in-up {
-            animation: fadeInUp 0.8s ease-out;
-        }
-
-        /* Tooltip */
-        .tooltip {
-            position: relative;
-        }
-
-        .tooltip::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 8px 12px;
-            background: rgba(0, 0, 0, 0.9);
+        .anomaly-card h3 {
+            margin: 0 0 10px 0;
             color: #fff;
-            font-size: 12px;
-            border-radius: 6px;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
         }
-
-        .tooltip:hover::after {
-            opacity: 1;
+        .scenario-name {
+            color: #667eea;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        .risk-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .risk-badge.critical { background: #e74c3c; }
+        .risk-badge.high { background: #e67e22; }
+        .risk-badge.medium { background: #f39c12; }
+        .risk-badge.low { background: #2ecc71; }
+        .timestamp {
+            color: #666;
+            font-size: 12px;
+        }
+        .nav-bar {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .nav-btn {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .nav-btn:hover {
+            background: #764ba2;
+        }
+        .more-anomalies {
+            text-align: center;
+            grid-column: 1 / -1;
+            padding: 20px;
+            color: #666;
+        }
+        .knowledge-graph-btn {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 30px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .knowledge-graph-btn:hover {
+            background: #2ecc71;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <header>
-            <div class="header-content">
-                <div class="logo">
-                    <div class="logo-icon">🚗</div>
-                    <div class="logo-text">
-                        <h1>ADS Safety Platform</h1>
-                        <p>自动驾驶安全验证平台</p>
-                    </div>
-                </div>
-                <nav>
-                    <ul>
-                        <li><a href="#scene">🎯 场景可视化</a></li>
-                        <li><a href="#detection">🔍 检测结果</a></li>
-                        <li><a href="#knowledge">🧠 知识图谱</a></li>
-                        <li><a href="#charts">📊 统计图表</a></li>
-                        <li><a href="#rss">🛡️ RSS规则</a></li>
-                        <li><a href="#cases">📚 案例分析</a></li>
-                    </ul>
-                </nav>
-            </div>
-        </header>
-
-        <!-- Main Title -->
-        <div class="main-title animate-fade-in-up">
-            <h1>🚀 自动驾驶安全可视化检测平台</h1>
-            <p>基于知识图谱的RSS规则检测、风险评估与违规分析</p>
-        </div>
-
-        <!-- Dashboard -->
-        <div class="dashboard animate-fade-in-up">
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <span>📊</span>
-                        <span>总检测次数</span>
-                    </div>
-                    <div class="card-badge badge-info">实时</div>
-                </div>
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-number">15,847</div>
-                        <div class="stat-label">总帧数</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">3,241</div>
-                        <div class="stat-label">违规次数</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">94.2%</div>
-                        <div class="stat-label">安全率</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">5.8%</div>
-                        <div class="stat-label">风险率</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <span>⚡</span>
-                        <span>性能指标</span>
-                    </div>
-                    <div class="card-badge badge-success">优秀</div>
-                </div>
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-number">120</div>
-                        <div class="stat-label">FPS</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">8.3ms</div>
-                        <div class="stat-label">平均延迟</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">92%</div>
-                        <div class="stat-label">缓存命中</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">4x</div>
-                        <div class="stat-label">并行加速</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <span>🎯</span>
-                        <span>当前风险</span>
-                    </div>
-                    <div class="card-badge badge-danger">HIGH</div>
-                </div>
-                <div style="text-align: center; padding: 20px;">
-                    <div style="font-size: 48px; font-weight: 700; color: #ff6b6b;">0.82</div>
-                    <div style="color: #a0a0a0; margin-top: 10px;">综合风险指数</div>
-                    <div style="display: flex; justify-content: center; gap: 20px; margin-top: 20px;">
-                        <div>
-                            <div style="color: #ff6b6b; font-size: 18px; font-weight: 600;">0.91</div>
-                            <div style="color: #a0a0a0; font-size: 12px;">纵向风险</div>
-                        </div>
-                        <div>
-                            <div style="color: #ffd93d; font-size: 18px; font-weight: 600;">0.25</div>
-                            <div style="color: #a0a0a0; font-size: 12px;">横向风险</div>
-                        </div>
-                        <div>
-                            <div style="color: #2ecc71; font-size: 18px; font-weight: 600;">0.18</div>
-                            <div style="color: #a0a0a0; font-size: 12px;">碰撞风险</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-title">
-                        <span>🚦</span>
-                        <span>交通规则</span>
-                    </div>
-                    <div class="card-badge badge-warning">监控中</div>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                    <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 15px;">
-                        <div style="color: #ff6b6b; font-size: 14px;">❌ R1: 红灯停车</div>
-                        <div style="color: #a0a0a0; font-size: 12px; margin-top: 5px;">违规: 1次</div>
-                    </div>
-                    <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 15px;">
-                        <div style="color: #2ecc71; font-size: 14px;">✅ R2: 实线变道</div>
-                        <div style="color: #a0a0a0; font-size: 12px; margin-top: 5px;">违规: 0次</div>
-                    </div>
-                    <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 15px;">
-                        <div style="color: #2ecc71; font-size: 14px;">✅ R3: 限速</div>
-                        <div style="color: #a0a0a0; font-size: 12px; margin-top: 5px;">违规: 0次</div>
-                    </div>
-                    <div style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 15px;">
-                        <div style="color: #ffd93d; font-size: 14px;">⚠️ RCPP: 交叉口</div>
-                        <div style="color: #a0a0a0; font-size: 12px; margin-top: 5px;">违规: 2次</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Scene Visualization -->
-        <div class="scene-container animate-fade-in-up" id="scene">
-            <div class="scene-header">
-                <div class="scene-title">🎯 CARLA场景可视化 - 实时检测</div>
-                <div style="display: flex; gap: 15px;">
-                    <div class="card-badge badge-success">Ego: 15m/s</div>
-                    <div class="card-badge badge-warning">Frame: #42</div>
-                    <div class="card-badge badge-danger">Violations: 3</div>
-                </div>
-            </div>
-            <div class="scene-canvas" id="sceneCanvas">
-                <div class="road"></div>
-                <div class="road-marking dashed"></div>
-                <!-- Vehicles will be added by JavaScript -->
-                <div class="traffic-light red" style="left: 15%; top: 30%;"></div>
-                <div class="risk-zone high" style="left: 45%; top: 45%; width: 100px; height: 100px;"></div>
-            </div>
-            <div style="margin-top: 20px; display: flex; gap: 20px; justify-content: center;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="width: 20px; height: 20px; background: #e74c3c; border-radius: 50%;"></div>
-                    <span style="color: #a0a0a0;">Ego Vehicle</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="width: 20px; height: 20px; background: #3498db; border-radius: 50%;"></div>
-                    <span style="color: #a0a0a0;">NPC Vehicle</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="width: 20px; height: 20px; background: #ff6b6b; border-radius: 50%; border: 2px dashed #ff6b6b;"></div>
-                    <span style="color: #a0a0a0;">Risk Zone</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Detection Results -->
-        <div class="results-container animate-fade-in-up" id="detection">
-            <div class="scene-header">
-                <div class="scene-title">🔍 实时检测结果</div>
-                <div class="results-tabs">
-                    <button class="tab-button active" onclick="showDetectionTab('violations')">违规列表</button>
-                    <button class="tab-button" onclick="showDetectionTab('warnings')">警告信息</button>
-                    <button class="tab-button" onclick="showDetectionTab('safe')">安全状态</button>
-                </div>
-            </div>
-            
-            <div id="violations" class="tab-content active">
-                <div class="violation-list">
-                    <div class="violation-item high">
-                        <div class="violation-header">
-                            <div class="violation-title">RSS_LONGITUDINAL - 纵向安全距离不足</div>
-                            <div class="violation-code">RSS-001</div>
-                        </div>
-                        <div class="violation-description">
-                            检测到自车与前车NPC1的距离为28.5m，低于最小安全距离33.5m。<br>
-                            <strong>建议:</strong> 减速至10m/s以下，保持安全距离。
-                        </div>
-                    </div>
-                    
-                    <div class="violation-item high">
-                        <div class="violation-header">
-                            <div class="violation-title">TRAFFIC_LIGHT - 红灯未停车</div>
-                            <div class="violation-code">R1-001</div>
-                        </div>
-                        <div class="violation-description">
-                            自车在红灯路口未完全停止，当前速度为15m/s。<br>
-                            <strong>建议:</strong> 立即减速停车，等待绿灯。
-                        </div>
-                    </div>
-                    
-                    <div class="violation-item medium">
-                        <div class="violation-header">
-                            <div class="violation-title">RCPP_INTERSECTION - 交叉口优先权冲突</div>
-                            <div class="violation-code">RCPP-002</div>
-                        </div>
-                        <div class="violation-description">
-                            检测到与右侧车辆NPC2存在优先权冲突，相对速度为8m/s。<br>
-                            <strong>建议:</strong> 让行，等待右侧车辆通过。
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div id="warnings" class="tab-content">
-                <div class="violation-list">
-                    <div class="violation-item medium">
-                        <div class="violation-header">
-                            <div class="violation-title">LANE_CHANGE - 变道警告</div>
-                            <div class="violation-code">BEH-003</div>
-                        </div>
-                        <div class="violation-description">
-                            检测到NPC3车辆正在变道，与自车横向距离为3.2m。<br>
-                            <strong>建议:</strong> 保持当前车道，注意观察。
-                        </div>
-                    </div>
-                    <div class="violation-item medium">
-                        <div class="violation-header">
-                            <div class="violation-title">CLOSE_DISTANCE - 近距离警告</div>
-                            <div class="violation-code">BEH-004</div>
-                        </div>
-                        <div class="violation-description">
-                            NPC2车辆与自车横向距离为4.5m，接近安全阈值5m。<br>
-                            <strong>建议:</strong> 准备减速或变道。
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div id="safe" class="tab-content">
-                <div style="text-align: center; padding: 40px; color: #2ecc71;">
-                    <div style="font-size: 48px; margin-bottom: 10px;">✅</div>
-                    <div style="font-size: 20px; font-weight: 600; margin-bottom: 10px;">所有安全检查通过</div>
-                    <div style="color: #a0a0a0;">当前场景无安全风险</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Knowledge Graph -->
-        <div class="kg-container animate-fade-in-up" id="knowledge">
-            <div class="scene-header">
-                <div class="scene-title">🧠 知识图谱 - 场景分析</div>
-                <div class="card-badge badge-info">实体: 14 | 关系: 42</div>
-            </div>
-            <div class="kg-canvas" id="kgCanvas">
-                <!-- Knowledge graph will be rendered by JavaScript -->
-            </div>
-        </div>
-
-        <!-- Charts -->
-        <div class="charts-container animate-fade-in-up" id="charts">
-            <div class="chart-card">
-                <h3>📈 风险指数趋势</h3>
-                <div class="chart-wrapper">
-                    <canvas id="riskChart"></canvas>
-                </div>
-            </div>
-            <div class="chart-card">
-                <h3>🚗 违规类型分布</h3>
-                <div class="chart-wrapper">
-                    <canvas id="violationChart"></canvas>
-                </div>
-            </div>
-            <div class="chart-card">
-                <h3>⚡ 性能监控</h3>
-                <div class="chart-wrapper">
-                    <canvas id="performanceChart"></canvas>
-                </div>
-            </div>
-            <div class="chart-card">
-                <h3>🎯 RSS规则检测统计</h3>
-                <div class="chart-wrapper">
-                    <canvas id="rssChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- RSS Rules -->
-        <div class="rss-container animate-fade-in-up" id="rss">
-            <div class="scene-header">
-                <div class="scene-title">🛡️ RSS安全规则详解</div>
-                <div class="card-badge badge-success">6大规则类别</div>
-            </div>
-            
-            <div class="rss-grid">
-                <div class="rss-card">
-                    <h4>📐 纵向安全规则</h4>
-                    <p>基于RSS理论的纵向安全距离计算，确保后车与前车保持安全距离。支持最小安全距离、反应不当、危险情形等检测。</p>
-                </div>
-                <div class="rss-card">
-                    <h4>📏 横向安全规则</h4>
-                    <p>横向安全距离计算，确保变道和横向移动的安全性。支持横向TTC、变道安全性、横向碰撞检测。</p>
-                </div>
-                <div class="rss-card">
-                    <h4>🚦 交叉口规则 (RCPP)</h4>
-                    <p>基于右侧优先规则的交叉口路径规划算法。支持普通交叉口、合并路口、T型路口、环岛等场景。</p>
-                </div>
-                <div class="rss-card">
-                    <h4>👥 行人保护规则</h4>
-                    <p>行人横穿、接近、让行等行为检测。确保自动驾驶系统能够及时响应行人行为。</p>
-                </div>
-                <div class="rss-card">
-                    <h4>📊 风险指数计算</h4>
-                    <p>连续风险评分[0,1]，支持多维度风险分析。包含纵向、横向、碰撞、行人、交通规则等风险维度。</p>
-                </div>
-                <div class="rss-card">
-                    <h4>🚦 交通规则</h4>
-                    <p>R1: 红灯停车规则 | R2: 实线不可变道规则 | R3: 限速规则。确保自动驾驶系统遵守交通规则。</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Case Studies -->
-        <div class="cases-container animate-fade-in-up" id="cases">
-            <div class="scene-header">
-                <div class="scene-title">📚 违规案例分析</div>
-                <div class="card-badge badge-warning">基于CARLA仿真数据</div>
-            </div>
-            
-            <div class="case-grid">
-                <div class="case-card" onclick="showCaseDetail(1)">
-                    <h4>🚦 案例1: 红灯未停车</h4>
-                    <p>自车在红灯路口未完全停止，速度15m/s，违反R1规则。风险指数: 0.95</p>
-                </div>
-                <div class="case-card" onclick="showCaseDetail(2)">
-                    <h4>🚗 案例2: 纵向安全距离不足</h4>
-                    <p>自车与前车距离28.5m，低于最小安全距离33.5m。风险指数: 0.88</p>
-                </div>
-                <div class="case-card" onclick="showCaseDetail(3)">
-                    <h4>🔄 案例3: 交叉口优先权冲突</h4>
-                    <p>与右侧车辆存在优先权冲突，相对速度8m/s。风险指数: 0.72</p>
-                </div>
-                <div class="case-card" onclick="showCaseDetail(4)">
-                    <h4>👥 案例4: 行人横穿</h4>
-                    <p>检测到行人横穿，距离自车12m，速度2m/s。风险指数: 0.91</p>
-                </div>
-                <div class="case-card" onclick="showCaseDetail(5)">
-                    <h4>🔀 案例5: 变道不安全</h4>
-                    <p>NPC车辆变道时与自车横向距离3.2m。风险指数: 0.65</p>
-                </div>
-                <div class="case-card" onclick="showCaseDetail(6)">
-                    <h4>⚡ 案例6: 并行计算性能</h4>
-                    <p>并行计算将规则检测性能提升3-4倍，平均延迟8.3ms。缓存命中率92%</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Footer -->
-        <footer class="animate-fade-in-up">
-            <div class="footer-content">
-                <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 20px;">
-                    <div class="logo-icon">🚗</div>
-                    <div>
-                        <h3 style="color: #fff; font-size: 20px;">ADS Safety Platform</h3>
-                        <p style="color: #a0a0a0; font-size: 12px;">自动驾驶安全验证平台</p>
-                    </div>
-                </div>
-                <div class="footer-text">
-                    <p>© 2026 ADS Safety Platform. All rights reserved. | MIT License</p>
-                    <p style="margin-top: 10px;">
-                        <strong>维护者:</strong> Zhang Haibing |
-                        <strong>状态:</strong> ✅ 已完成 |
-                        <strong>版本:</strong> 1.0.0 |
-                        <strong>GitHub:</strong> <a href="https://github.com/small1zhang/ads_safety_platform" style="color: #667eea;">small1zhang/ads_safety_platform</a>
-                    </p>
-                </div>
-            </div>
-        </footer>
+    <div class="header">
+        <h1>🚗 ADS Safety Platform</h1>
+        <h2>实时异常检测仪表盘</h2>
+        <p>收集时间: 2026-08-25 | 总时长: 10.0秒 | 场景数: 10</p>
     </div>
-
+    
+    <div class="stats-bar">
+        <div class="stat-item">
+            <div class="stat-value">10</div>
+            <div class="stat-label">总异常数</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" style="color: #e74c3c;">5</div>
+            <div class="stat-label">危急</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" style="color: #e67e22;">0</div>
+            <div class="stat-label">高危</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" style="color: #f39c12;">5</div>
+            <div class="stat-label">中危</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" style="color: #2ecc71;">0</div>
+            <div class="stat-label">低危</div>
+        </div>
+    </div>
+    
+    <button class="knowledge-graph-btn" onclick="location.href='knowledge_graph_20260825_095424.html'">
+        📊 查看知识图谱
+    </button>
+    
+    <div class="anomalies-grid" id="anomaliesGrid">
+        
+            <div class="anomaly-card" onclick="location.href='anomaly_001_2026-08-25T09-.html'">
+                <h3>异常 #1</h3>
+                <p class="scenario-name">红灯场景</p>
+                <div class="risk-badge medium">MEDIUM (0.50)</div>
+                <p class="timestamp">检测时间: 2026-08-25T09:54:14.390765</p>
+            </div>
+            
+            <div class="anomaly-card" onclick="location.href='anomaly_002_2026-08-25T09-.html'">
+                <h3>异常 #2</h3>
+                <p class="scenario-name">合流场景</p>
+                <div class="risk-badge critical">CRITICAL (0.90)</div>
+                <p class="timestamp">检测时间: 2026-08-25T09:54:15.392248</p>
+            </div>
+            
+            <div class="anomaly-card" onclick="location.href='anomaly_003_2026-08-25T09-.html'">
+                <h3>异常 #3</h3>
+                <p class="scenario-name">人行横道场景</p>
+                <div class="risk-badge medium">MEDIUM (0.50)</div>
+                <p class="timestamp">检测时间: 2026-08-25T09:54:16.393581</p>
+            </div>
+            
+            <div class="anomaly-card" onclick="location.href='anomaly_004_2026-08-25T09-.html'">
+                <h3>异常 #4</h3>
+                <p class="scenario-name">交叉口场景</p>
+                <div class="risk-badge critical">CRITICAL (1.00)</div>
+                <p class="timestamp">检测时间: 2026-08-25T09:54:17.394983</p>
+            </div>
+            
+            <div class="anomaly-card" onclick="location.href='anomaly_005_2026-08-25T09-.html'">
+                <h3>异常 #5</h3>
+                <p class="scenario-name">红灯场景</p>
+                <div class="risk-badge medium">MEDIUM (0.50)</div>
+                <p class="timestamp">检测时间: 2026-08-25T09:54:18.396239</p>
+            </div>
+            
+            <div class="anomaly-card" onclick="location.href='anomaly_006_2026-08-25T09-.html'">
+                <h3>异常 #6</h3>
+                <p class="scenario-name">合流场景</p>
+                <div class="risk-badge critical">CRITICAL (0.90)</div>
+                <p class="timestamp">检测时间: 2026-08-25T09:54:19.397038</p>
+            </div>
+            
+            <div class="anomaly-card" onclick="location.href='anomaly_007_2026-08-25T09-.html'">
+                <h3>异常 #7</h3>
+                <p class="scenario-name">人行横道场景</p>
+                <div class="risk-badge medium">MEDIUM (0.50)</div>
+                <p class="timestamp">检测时间: 2026-08-25T09:54:20.398282</p>
+            </div>
+            
+            <div class="anomaly-card" onclick="location.href='anomaly_008_2026-08-25T09-.html'">
+                <h3>异常 #8</h3>
+                <p class="scenario-name">交叉口场景</p>
+                <div class="risk-badge critical">CRITICAL (1.00)</div>
+                <p class="timestamp">检测时间: 2026-08-25T09:54:21.399761</p>
+            </div>
+            
+            <div class="anomaly-card" onclick="location.href='anomaly_009_2026-08-25T09-.html'">
+                <h3>异常 #9</h3>
+                <p class="scenario-name">红灯场景</p>
+                <div class="risk-badge medium">MEDIUM (0.50)</div>
+                <p class="timestamp">检测时间: 2026-08-25T09:54:22.401036</p>
+            </div>
+            
+            <div class="anomaly-card" onclick="location.href='anomaly_010_2026-08-25T09-.html'">
+                <h3>异常 #10</h3>
+                <p class="scenario-name">合流场景</p>
+                <div class="risk-badge critical">CRITICAL (0.90)</div>
+                <p class="timestamp">检测时间: 2026-08-25T09:54:23.402339</p>
+            </div>
+            
+    </div>
+    
     <script>
-        // ============================================
-        // CANVAS CHART LIBRARY (Pure JavaScript, No Dependencies)
-        // ============================================
-        
-        class SimpleChart {
-            constructor(canvas, config) {
-                this.canvas = canvas;
-                this.ctx = canvas.getContext('2d');
-                this.config = config;
-                this.resize();
-                this.render();
-                window.addEventListener('resize', () => this.resize());
-            }
-            
-            resize() {
-                const container = this.canvas.parentElement;
-                this.canvas.width = container.clientWidth;
-                this.canvas.height = container.clientHeight;
-                this.render();
-            }
-            
-            render() {
-                const { type, data, options } = this.config;
-                const { width, height } = this.canvas;
-                const ctx = this.ctx;
-                
-                // Clear
-                ctx.clearRect(0, 0, width, height);
-                
-                if (type === 'line') {
-                    this.renderLineChart(width, height);
-                } else if (type === 'doughnut') {
-                    this.renderDoughnutChart(width, height);
-                } else if (type === 'bar') {
-                    this.renderBarChart(width, height);
-                } else if (type === 'radar') {
-                    this.renderRadarChart(width, height);
-                }
-            }
-            
-            renderLineChart(width, height) {
-                const { labels, datasets } = this.config.data;
-                const primary = datasets[0];
-                const padding = { top: 20, right: 20, bottom: 40, left: 50 };
-                const chartWidth = width - padding.left - padding.right;
-                const chartHeight = height - padding.top - padding.bottom;
-                const ctx = this.ctx;
-                
-                // Draw grid
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-                ctx.lineWidth = 1;
-                for (let i = 0; i <= 4; i++) {
-                    const y = padding.top + (i / 4) * chartHeight;
-                    ctx.beginPath();
-                    ctx.moveTo(padding.left, y);
-                    ctx.lineTo(width - padding.right, y);
-                    ctx.stroke();
-                    // Label
-                    const value = (1 - i / 4).toFixed(2);
-                    ctx.fillStyle = '#a0a0a0';
-                    ctx.font = '11px sans-serif';
-                    ctx.textAlign = 'right';
-                    ctx.fillText(value, padding.left - 8, y + 3);
-                }
-                
-                // Draw lines
-                datasets.forEach(dataset => {
-                    ctx.beginPath();
-                    ctx.strokeStyle = dataset.borderColor || '#667eea';
-                    ctx.lineWidth = dataset.borderWidth || 2;
-                    
-                    const points = dataset.data.map((value, index) => {
-                        const x = padding.left + (index / (dataset.data.length - 1)) * chartWidth;
-                        const y = padding.top + (1 - value) * chartHeight;
-                        return { x, y, value };
-                    });
-                    
-                    points.forEach((p, i) => {
-                        if (i === 0) {
-                            ctx.moveTo(p.x, p.y);
-                        } else {
-                            ctx.lineTo(p.x, p.y);
-                        }
-                    });
-                    ctx.stroke();
-                    
-                    // Fill area for primary dataset
-                    if (dataset === primary && dataset.backgroundColor) {
-                        ctx.fillStyle = dataset.backgroundColor;
-                        ctx.lineTo(width - padding.right, padding.top + chartHeight);
-                        ctx.lineTo(padding.left, padding.top + chartHeight);
-                        ctx.closePath();
-                        ctx.fill();
-                    }
-                    
-                    // Draw points
-                    if (dataset.pointBackgroundColor) {
-                        points.forEach(p => {
-                            ctx.beginPath();
-                            ctx.fillStyle = dataset.pointBackgroundColor;
-                            ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
-                            ctx.fill();
-                        });
-                    }
-                });
-                
-                // Draw labels
-                labels.forEach((label, index) => {
-                    const x = padding.left + (index / (labels.length - 1)) * chartWidth;
-                    ctx.fillStyle = '#a0a0a0';
-                    ctx.font = '11px sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(label, x, height - 10);
-                });
-            }
-            
-            renderDoughnutChart(width, height) {
-                const { labels, datasets } = this.config.data;
-                const dataset = datasets[0];
-                const data = dataset.data;
-                const colors = dataset.backgroundColor;
-                const total = data.reduce((a, b) => a + b, 0);
-                const centerX = width / 2;
-                const centerY = height / 2;
-                const radius = Math.min(width, height) / 2 * 0.6;
-                const ctx = this.ctx;
-                
-                let startAngle = -Math.PI / 2;
-                
-                data.forEach((value, index) => {
-                    const endAngle = startAngle + (value / total) * Math.PI * 2;
-                    ctx.beginPath();
-                    ctx.moveTo(centerX, centerY);
-                    ctx.arc(centerX, centerY, radius, startAngle, endAngle);
-                    ctx.closePath();
-                    ctx.fillStyle = colors[index];
-                    ctx.fill();
-                    
-                    // Draw label
-                    const midAngle = (startAngle + endAngle) / 2;
-                    const labelX = centerX + Math.cos(midAngle) * radius * 0.7;
-                    const labelY = centerY + Math.sin(midAngle) * radius * 0.7;
-                    ctx.fillStyle = '#fff';
-                    ctx.font = '11px sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(`${((value/total)*100).toFixed(1)}%`, labelX, labelY);
-                    
-                    startAngle = endAngle;
-                });
-                
-                // Draw legend
-                let legendY = height - 20;
-                data.forEach((value, index) => {
-                    ctx.fillStyle = colors[index];
-                    ctx.fillRect(30, legendY - 10, 12, 12);
-                    ctx.fillStyle = '#a0a0a0';
-                    ctx.font = '11px sans-serif';
-                    ctx.textAlign = 'left';
-                    ctx.fillText(`${labels[index]}: ${value}`, 48, legendY);
-                    legendY -= 20;
-                });
-            }
-            
-            renderBarChart(width, height) {
-                const { labels, datasets } = this.config.data;
-                const dataset = datasets[0];
-                const data = dataset.data;
-                const colors = dataset.backgroundColor;
-                const maxValue = Math.max(...data);
-                const padding = { top: 20, right: 20, bottom: 40, left: 50 };
-                const chartWidth = width - padding.left - padding.right;
-                const chartHeight = height - padding.top - padding.bottom;
-                const barWidth = chartWidth / data.length * 0.7;
-                const barSpacing = chartWidth / data.length * 0.3;
-                const ctx = this.ctx;
-                
-                // Draw grid
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-                ctx.lineWidth = 1;
-                for (let i = 0; i <= 4; i++) {
-                    const y = padding.top + (1 - i / 4) * chartHeight;
-                    ctx.beginPath();
-                    ctx.moveTo(padding.left, y);
-                    ctx.lineTo(width - padding.right, y);
-                    ctx.stroke();
-                    const value = (maxValue * i / 4).toFixed(1);
-                    ctx.fillStyle = '#a0a0a0';
-                    ctx.font = '11px sans-serif';
-                    ctx.textAlign = 'right';
-                    ctx.fillText(value, padding.left - 8, y + 3);
-                }
-                
-                // Draw bars
-                data.forEach((value, index) => {
-                    const barHeight = (value / maxValue) * chartHeight;
-                    const x = padding.left + index * (barWidth + barSpacing) + barSpacing / 2;
-                    const y = padding.top + chartHeight - barHeight;
-                    
-                    ctx.fillStyle = colors[index];
-                    ctx.fillRect(x, y, barWidth, barHeight);
-                    
-                    // Label
-                    ctx.fillStyle = '#fff';
-                    ctx.font = '11px sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(value.toFixed(1), x + barWidth / 2, y - 5);
-                });
-                
-                // Draw x-axis labels
-                labels.forEach((label, index) => {
-                    const x = padding.left + index * (barWidth + barSpacing) + barSpacing / 2 + barWidth / 2;
-                    ctx.fillStyle = '#a0a0a0';
-                    ctx.font = '11px sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(label, x, height - 10);
-                });
-            }
-            
-            renderRadarChart(width, height) {
-                const { labels, datasets } = this.config.data;
-                const dataset = datasets[0];
-                const data = dataset.data;
-                const maxValue = Math.max(...data);
-                const centerX = width / 2;
-                const centerY = height / 2;
-                const radius = Math.min(width, height) / 2 * 0.7;
-                const ctx = this.ctx;
-                
-                // Draw grid
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-                ctx.lineWidth = 1;
-                for (let i = 1; i <= 4; i++) {
-                    const r = radius * i / 4;
-                    ctx.beginPath();
-                    ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
-                    ctx.stroke();
-                    ctx.fillStyle = '#a0a0a0';
-                    ctx.font = '11px sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(Math.round(maxValue * i / 4), centerX + r, centerY - 5);
-                }
-                
-                // Draw axes
-                const angleStep = Math.PI * 2 / data.length;
-                for (let i = 0; i < data.length; i++) {
-                    const angle = i * angleStep - Math.PI / 2;
-                    ctx.beginPath();
-                    ctx.moveTo(centerX, centerY);
-                    ctx.lineTo(centerX + Math.cos(angle) * radius, centerY + Math.sin(angle) * radius);
-                    ctx.stroke();
-                    
-                    // Label
-                    ctx.fillStyle = '#a0a0a0';
-                    ctx.font = '11px sans-serif';
-                    ctx.textAlign = 'center';
-                    const labelX = centerX + Math.cos(angle) * radius * 1.1;
-                    const labelY = centerY + Math.sin(angle) * radius * 1.1;
-                    ctx.fillText(labels[i], labelX, labelY);
-                }
-                
-                // Draw data
-                ctx.beginPath();
-                ctx.strokeStyle = dataset.borderColor || '#667eea';
-                ctx.lineWidth = 2;
-                
-                data.forEach((value, index) => {
-                    const angle = index * angleStep - Math.PI / 2;
-                    const r = (value / maxValue) * radius;
-                    const x = centerX + Math.cos(angle) * r;
-                    const y = centerY + Math.sin(angle) * r;
-                    
-                    if (index === 0) {
-                        ctx.moveTo(x, y);
-                    } else {
-                        ctx.lineTo(x, y);
-                    }
-                });
-                ctx.closePath();
-                ctx.stroke();
-                
-                // Fill
-                ctx.fillStyle = dataset.backgroundColor || 'rgba(102, 126, 234, 0.2)';
-                ctx.fill();
-            }
-        }
-        
-        // Tab switching for detection results
-        function showDetectionTab(tabName) {
-            const tabs = document.querySelectorAll('#detection .tab-content');
-            const buttons = document.querySelectorAll('#detection .tab-button');
-            
-            tabs.forEach(tab => tab.classList.remove('active'));
-            buttons.forEach(btn => btn.classList.remove('active'));
-            
-            document.getElementById(tabName).classList.add('active');
-            event.target.classList.add('active');
-        }
-
-        // Scene animation
-        function animateScene() {
-            const sceneCanvas = document.getElementById('sceneCanvas');
-            
-            // Clear existing elements
-            const existing = sceneCanvas.querySelectorAll('.vehicle, .pedestrian');
-            existing.forEach(el => el.remove());
-            
-            // Create vehicles
-            const vehicles = [
-                { class: 'ego', x: 50, y: 180, yaw: 0 },
-                { class: 'npc1', x: 20, y: 150, yaw: 0 },
-                { class: 'npc2', x: 80, y: 210, yaw: 180 },
-                { class: 'npc3', x: 30, y: 240, yaw: 0 }
-            ];
-            
-            vehicles.forEach(v => {
-                const vehicle = document.createElement('div');
-                vehicle.className = `vehicle ${v.class}`;
-                vehicle.style.left = `${v.x}%`;
-                vehicle.style.top = `${v.y}px`;
-                vehicle.style.transform = `rotate(${v.yaw}deg)`;
-                sceneCanvas.appendChild(vehicle);
-            });
-            
-            // Create pedestrians
-            const pedestrians = [
-                { x: 70, y: 160 },
-                { x: 10, y: 200 }
-            ];
-            
-            pedestrians.forEach(p => {
-                const pedestrian = document.createElement('div');
-                pedestrian.className = 'pedestrian';
-                pedestrian.style.left = `${p.x}%`;
-                pedestrian.style.top = `${p.y}px`;
-                sceneCanvas.appendChild(pedestrian);
-            });
-            
-            // Animate vehicles
-            let egoX = 50;
-            let npc1X = 20;
-            let npc2X = 80;
-            
-            setInterval(() => {
-                egoX += 0.5;
-                npc1X += 0.3;
-                npc2X -= 0.4;
-                
-                if (egoX > 85) egoX = 50;
-                if (npc1X > 90) npc1X = 15;
-                if (npc2X < 15) npc2X = 85;
-                
-                const vehicles = sceneCanvas.querySelectorAll('.vehicle');
-                if (vehicles.length >= 3) {
-                    vehicles[0].style.left = `${egoX}%`;
-                    vehicles[1].style.left = `${npc1X}%`;
-                    vehicles[2].style.left = `${npc2X}%`;
-                }
-            }, 100);
-        }
-
-        // Knowledge Graph
-        function renderKnowledgeGraph() {
-            const kgCanvas = document.getElementById('kgCanvas');
-            
-            // Nodes data
-            const nodes = [
-                { id: 'ego', x: 50, y: 50, type: 'entity', label: 'Ego Vehicle' },
-                { id: 'npc1', x: 30, y: 100, type: 'entity', label: 'NPC Vehicle 1' },
-                { id: 'npc2', x: 70, y: 100, type: 'entity', label: 'NPC Vehicle 2' },
-                { id: 'ped1', x: 20, y: 150, type: 'entity', label: 'Pedestrian' },
-                { id: 'light', x: 80, y: 150, type: 'entity', label: 'Traffic Light' },
-                { id: 'rss_long', x: 50, y: 200, type: 'rule', label: 'RSS Longitudinal' },
-                { id: 'rss_lat', x: 30, y: 250, type: 'rule', label: 'RSS Lateral' },
-                { id: 'rcpp', x: 70, y: 250, type: 'rule', label: 'RCPP Intersection' },
-                { id: 'violation1', x: 50, y: 300, type: 'violation', label: 'Distance Violation' },
-                { id: 'violation2', x: 30, y: 350, type: 'violation', label: 'Red Light Violation' },
-                { id: 'risk', x: 70, y: 350, type: 'risk', label: 'Risk Index: 0.82' }
-            ];
-            
-            // Edges data
-            const edges = [
-                { from: 'ego', to: 'npc1', fromX: 50, fromY: 50, toX: 30, toY: 100 },
-                { from: 'ego', to: 'npc2', fromX: 50, fromY: 50, toX: 70, toY: 100 },
-                { from: 'ego', to: 'ped1', fromX: 50, fromY: 50, toX: 20, toY: 150 },
-                { from: 'ego', to: 'light', fromX: 50, fromY: 50, toX: 80, toY: 150 },
-                { from: 'ego', to: 'rss_long', fromX: 50, fromY: 50, toX: 50, toY: 200 },
-                { from: 'ego', to: 'rss_lat', fromX: 50, fromY: 50, toX: 30, toY: 250 },
-                { from: 'ego', to: 'rcpp', fromX: 50, fromY: 50, toX: 70, toY: 250 },
-                { from: 'rss_long', to: 'violation1', fromX: 50, fromY: 200, toX: 50, toY: 300 },
-                { from: 'light', to: 'violation2', fromX: 80, fromY: 150, toX: 30, toY: 350 },
-                { from: 'violation1', to: 'risk', fromX: 50, fromY: 300, toX: 70, toY: 350 },
-                { from: 'violation2', to: 'risk', fromX: 30, fromY: 350, toX: 70, toY: 350 }
-            ];
-            
-            // Render edges first
-            edges.forEach(edgeData => {
-                const edgeEl = document.createElement('div');
-                edgeEl.className = 'kg-edge';
-                
-                // Calculate distance and angle
-                const dx = edgeData.toX - edgeData.fromX;
-                const dy = edgeData.toY - edgeData.fromY;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-                
-                edgeEl.style.width = `${distance}px`;
-                edgeEl.style.height = '2px';
-                edgeEl.style.left = `${edgeData.fromX}%`;
-                edgeEl.style.top = `${edgeData.fromY}px`;
-                edgeEl.style.transform = `rotate(${angle}deg)`;
-                edgeEl.style.transformOrigin = '0 0';
-                
-                kgCanvas.appendChild(edgeEl);
-            });
-            
-            // Render nodes
-            nodes.forEach(node => {
-                const nodeEl = document.createElement('div');
-                nodeEl.className = `kg-node ${node.type}`;
-                nodeEl.textContent = node.label;
-                nodeEl.style.left = `${node.x}%`;
-                nodeEl.style.top = `${node.y}px`;
-                nodeEl.setAttribute('data-tooltip', `${node.label} (${node.type})`);
-                
-                kgCanvas.appendChild(nodeEl);
-            });
-        }
-
-        // Case detail modal
-        function showCaseDetail(caseNum) {
-            const cases = {
-                1: {
-                    title: '红灯未停车',
-                    description: '自车在红灯路口未完全停止，速度15m/s，违反R1规则。系统检测到交通灯状态为红色，但自车仍在行驶。',
-                    risk: '0.95 (CRITICAL)',
-                    rule: 'R1: 红灯停车规则',
-                    suggestion: '立即减速停车，等待绿灯',
-                    frame: 'Frame #42',
-                    entities: 'Ego Vehicle, Traffic Light'
-                },
-                2: {
-                    title: '纵向安全距离不足',
-                    description: '自车与前车NPC1的距离为28.5m，低于根据RSS理论计算的最小安全距离33.5m。自车速度15m/s，前车速度10m/s。',
-                    risk: '0.88 (HIGH)',
-                    rule: 'RSS Longitudinal Rule',
-                    suggestion: '减速至10m/s以下，保持安全距离',
-                    frame: 'Frame #42',
-                    entities: 'Ego Vehicle, NPC Vehicle 1'
-                },
-                3: {
-                    title: '交叉口优先权冲突',
-                    description: '检测到与右侧车辆NPC2存在优先权冲突。根据RCPP算法，右侧车辆有先行权，但自车未让行。相对速度为8m/s。',
-                    risk: '0.72 (HIGH)',
-                    rule: 'RCPP Intersection Priority',
-                    suggestion: '让行，等待右侧车辆通过',
-                    frame: 'Frame #42',
-                    entities: 'Ego Vehicle, NPC Vehicle 2'
-                },
-                4: {
-                    title: '行人横穿',
-                    description: '检测到行人横穿马路，距离自车12m，行人速度2m/s。行人正在穿越自车行驶路径。',
-                    risk: '0.91 (CRITICAL)',
-                    rule: 'Pedestrian Protection Rule',
-                    suggestion: '立即减速停车，等待行人通过',
-                    frame: 'Frame #38',
-                    entities: 'Ego Vehicle, Pedestrian'
-                },
-                5: {
-                    title: '变道不安全',
-                    description: 'NPC车辆3正在变道，与自车横向距离为3.2m，低于安全阈值5m。变道过程中存在碰撞风险。',
-                    risk: '0.65 (MEDIUM)',
-                    rule: 'Lateral Safety Rule',
-                    suggestion: '保持当前车道，注意观察',
-                    frame: 'Frame #40',
-                    entities: 'Ego Vehicle, NPC Vehicle 3'
-                },
-                6: {
-                    title: '并行计算性能',
-                    description: '并行计算将规则检测性能提升3-4倍。平均延迟从32.5ms降至8.3ms。缓存命中率达到92%，ROI滤波进一步优化性能。',
-                    risk: 'N/A',
-                    rule: 'Performance Optimization',
-                    suggestion: '继续优化并行计算参数',
-                    frame: 'N/A',
-                    entities: 'Parallel Processor, Cache, ROI Filter'
-                }
-            };
-            
-            const caseData = cases[caseNum];
-            alert(`📚 案例详情: ${caseData.title}\n\n` +
-                  `📝 描述: ${caseData.description}\n\n` +
-                  `⚠️ 风险等级: ${caseData.risk}\n` +
-                  `📋 规则: ${caseData.rule}\n` +
-                  `💡 建议: ${caseData.suggestion}\n\n` +
-                  `🎬 帧信息: ${caseData.frame}\n` +
-                  `🚗 相关实体: ${caseData.entities}`);
-        }
-
-        // Initialize
-        document.addEventListener('DOMContentLoaded', function() {
-            animateScene();
-            renderKnowledgeGraph();
-            
-            // Initialize charts
-            new SimpleChart(document.getElementById('riskChart'), {
-                type: 'line',
-                data: {
-                    labels: ['Frame 30', 'Frame 35', 'Frame 40', 'Frame 42', 'Frame 45'],
-                    datasets: [{
-                        label: '风险指数',
-                        data: [0.45, 0.52, 0.68, 0.82, 0.75],
-                        borderColor: '#ff6b6b',
-                        backgroundColor: 'rgba(255, 107, 107, 0.1)',
-                        borderWidth: 3,
-                        pointBackgroundColor: '#ff6b6b'
-                    }, {
-                        label: '纵向风险',
-                        data: [0.35, 0.42, 0.65, 0.91, 0.80],
-                        borderColor: '#3498db',
-                        backgroundColor: 'transparent',
-                        borderWidth: 2
-                    }, {
-                        label: '横向风险',
-                        data: [0.25, 0.28, 0.32, 0.25, 0.20],
-                        borderColor: '#2ecc71',
-                        backgroundColor: 'transparent',
-                        borderWidth: 2
-                    }]
-                }
-            });
-
-            new SimpleChart(document.getElementById('violationChart'), {
-                type: 'doughnut',
-                data: {
-                    labels: ['纵向安全距离不足', '红灯未停车', '交叉口优先权', '变道警告', '近距离警告'],
-                    datasets: [{
-                        data: [1247, 892, 456, 321, 289],
-                        backgroundColor: [
-                            '#ff6b6b',
-                            '#e74c3c',
-                            '#ffd93d',
-                            '#3498db',
-                            '#2ecc71'
-                        ]
-                    }]
-                }
-            });
-
-            new SimpleChart(document.getElementById('performanceChart'), {
-                type: 'bar',
-                data: {
-                    labels: ['串行执行', '并行执行', '带缓存', 'ROI滤波'],
-                    datasets: [{
-                        data: [32.5, 8.3, 6.2, 4.8],
-                        backgroundColor: [
-                            'rgba(255, 107, 107, 0.7)',
-                            'rgba(52, 152, 219, 0.7)',
-                            'rgba(46, 204, 113, 0.7)',
-                            'rgba(155, 89, 182, 0.7)'
-                        ]
-                    }]
-                }
-            });
-
-            new SimpleChart(document.getElementById('rssChart'), {
-                type: 'radar',
-                data: {
-                    labels: ['纵向安全', '横向安全', '交叉口', '行人保护', '风险指数', '交通规则'],
-                    datasets: [{
-                        data: [95, 88, 92, 85, 90, 88],
-                        backgroundColor: 'rgba(102, 126, 234, 0.2)',
-                        borderColor: '#667eea'
-                    }]
-                }
-            });
-            
-            // Smooth scroll
-            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-                anchor.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    const target = document.querySelector(this.getAttribute('href'));
-                    if (target) {
-                        target.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'start'
-                        });
-                    }
-                });
-            });
+        // 支持返回
+        history.pushState(null, null, location.href);
+        window.addEventListener('popstate', function(event) {
+            window.location.reload();
         });
     </script>
 </body>

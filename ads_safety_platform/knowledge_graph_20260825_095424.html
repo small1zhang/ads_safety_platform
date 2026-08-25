@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>ADS Safety Platform - 知识图谱</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: #1a1a2e;
+            color: #e0e0e0;
+            overflow: hidden;
+        }
+        #graphContainer {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+        .node {
+            position: absolute;
+            background: var(--color);
+            border: 2px solid #fff;
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .node:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 20px #fff;
+        }
+        .link {
+            position: absolute;
+            background: #666;
+            height: 2px;
+            transform-origin: 0 0;
+        }
+        .node-label {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .node-attrs {
+            font-size: 10px;
+            color: #aaa;
+        }
+        .summary-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        .summary-item {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="graphContainer"></div>
+    <div class="summary-panel">
+        <div class="summary-item"><strong>总场景数:</strong> 10</div>
+        <div class="summary-item"><strong>高危:</strong> 5</div>
+        <div class="summary-item"><strong>中危:</strong> 0</div>
+        <div class="summary-item"><strong>低危:</strong> 0</div>
+    </div>
+    <script>
+
+        const nodes = [{"id": "ego", "label": "Ego车辆", "type": "ego", "x": -6.0, "y": 0, "color": "#27ae60", "shape": "ellipse", "attributes": {"速度": "15.0 m/s", "类型": "Tesla Model 3", "状态": "OK"}}, {"id": "violation_0", "label": "1. R1-001\nMEDIUM", "type": "violation", "x": -6.0, "y": 0, "color": "#e74c3c", "shape": "ellipse", "attributes": {"风险指数": "0.50", "违规数": 1, "场景": "红灯场景", "检测时间": "09:54:14"}}, {"id": "rule_0_0", "label": "TRAFFIC_LIGHT\nR1-001", "type": "violation", "x": -6.0, "y": 0, "color": "#e74c3c", "shape": "ellipse", "attributes": {"等级": "high", "消息": "红灯未停车，距离 6.0m"}}, {"id": "violation_1", "label": "2. RSS-001\nCRITICAL", "type": "violation", "x": 0, "y": 12.0, "color": "#e74c3c", "shape": "ellipse", "attributes": {"风险指数": "0.90", "违规数": 3, "场景": "合流场景", "检测时间": "09:54:15"}}, {"id": "rule_1_0", "label": "RSS_LONGITUDINAL\nRSS-001", "type": "violation", "x": 0, "y": 12.0, "color": "#e74c3c", "shape": "ellipse", "attributes": {"等级": "high", "消息": "与车辆距离 15.6m 低于最小安全距离 38.1m"}}, {"id": "rule_1_1", "label": "RSS_LONGITUDINAL\nRSS-001", "type": "violation", "x": 5, "y": 17.0, "color": "#e74c3c", "shape": "ellipse", "attributes": {"等级": "high", "消息": "与车辆距离 13.0m 低于最小安全距离 38.1m"}}, {"id": "rule_1_2", "label": "RSS_LONGITUDINAL\nRSS-001", "type": "violation", "x": 10, "y": 22.0, "color": "#e74c3c", "shape": "ellipse", "attributes": {"等级": "high", "消息": "与车辆距离 23.3m 低于最小安全距离 38.1m"}}, {"id": "violation_2", "label": "3. R2-001\nMEDIUM", "type": "violation", "x": 15.0, "y": 0, "color": "#e74c3c", "shape": "ellipse", "attributes": {"风险指数": "0.50", "违规数": 1, "场景": "人行横道场景", "检测时间": "09:54:16"}}, {"id": "rule_2_0", "label": "PEDESTRIAN_SAFETY\nR2-001", "type": "violation", "x": 15.0, "y": 0, "color": "#e74c3c", "shape": "ellipse", "attributes": {"等级": "high", "消息": "行人距离 5.4m，TTC 0.3s"}}, {"id": "violation_3", "label": "4. RSS-001\nCRITICAL", "type": "violation", "x": 22.0, "y": 0, "color": "#e74c3c", "shape": "ellipse", "attributes": {"风险指数": "1.00", "违规数": 4, "场景": "交叉口场景", "检测时间": "09:54:17"}}, {"id": "rule_3_0", "label": "RSS_LONGITUDINAL\nRSS-001", "type": "violation", "x": 22.0, "y": 0, "color": "#e74c3c", "shape": "ellipse", "attributes": {"等级": "high", "消息": "与车辆距离 11.3m 低于最小安全距离 48.1m"}}, {"id": "rule_3_1", "label": "RSS_LONGITUDINAL\nRSS-001", "type": "violation", "x": 27.0, "y": 5, "color": "#e74c3c", "shape": "ellipse", "attributes": {"等级": "high", "消息": "与车辆距离 11.3m 低于最小安全距离 48.1m"}}, {"id": "rule_3_2", "label": "RIGHT_OF_WAY\nR3-001", "type": "violation", "x": 32.0, "y": 10, "color": "#e74c3c", "shape": "ellipse", "attributes": {"等级": "high", "消息": "右侧车辆有优先通行权，自车应让行"}}, {"id": "rule_3_3", "label": "RIGHT_OF_WAY\nR3-001", "type": "violation", "x": 37.0, "y": 15, "color": "#e74c3c", "shape": "ellipse", "attributes": {"等级": "high", "消息": "右侧车辆有优先通行权，自车应让行"}}, {"id": "violation_4", "label": "5. R1-001\nMEDIUM", "type": "violation", "x": 34.0, "y": 0, "color": "#e74c3c", "shape": "ellipse", "attributes": {"风险指数": "0.50", "违规数": 1, "场景": "红灯场景", "检测时间": "09:54:18"}}, {"id": "rule_4_0", "label": "TRAFFIC_LIGHT\nR1-001", "type": "violation", "x": 34.0, "y": 0, "color": "#e74c3c", "shape": "ellipse", "attributes": {"等级": "high", "消息": "红灯未停车，距离 6.0m"}}, {"id": "violation_5", "label": "6. RSS-001\nCRITICAL", "type": "violation", "x": -10, "y": 22.0, "color": "#e74c3c", "shape": "ellipse", "attributes": {"风险指数": "0.90", "违规数": 3, "场景": "合流场景", "检测时间": "09:54:19"}}, {"id": "rule_5_0", "label": "RSS_LONGITUDINAL\nRSS-001", "type": "violation", "x": -10, "y": 22.0, "color": "#e74c3c", "shape": "ellipse", "attributes": {"等级": "high", "消息": "与车辆距离 15.6m 低于最小安全距离 33.5m"}}, {"id": "rule_5_1", "label": "RSS_LONGITUDINAL\nRSS-001", "type": "violation", "x": -5, "y": 27.0, "color": "#e74c3c", "shape": "ellipse", "attributes": {"等级": "high", "消息": "与车辆距离 13.0m 低于最小安全距离 33.5m"}}, {"id": "rule_5_2", "label": "RSS_LONGITUDINAL\nRSS-001", "type": "violation", "x": 0, "y": 32.0, "color": "#e74c3c", "shape": "ellipse", "attributes": {"等级": "high", "消息": "与车辆距离 23.3m 低于最小安全距离 33.5m"}}, {"id": "violation_6", "label": "7. R2-001\nMEDIUM", "type": "violation", "x": 5.0, "y": 10, "color": "#e74c3c", "shape": "ellipse", "attributes": {"风险指数": "0.50", "违规数": 1, "场景": "人行横道场景", "检测时间": "09:54:20"}}, {"id": "rule_6_0", "label": "PEDESTRIAN_SAFETY\nR2-001", "type": "violation", "x": 5.0, "y": 10, "color": "#e74c3c", "shape": "ellipse", "attributes": {"等级": "high", "消息": "行人距离 5.4m，TTC 0.4s"}}, {"id": "violation_7", "label": "8. RSS-001\nCRITICAL", "type": "violation", "x": 12.0, "y": 10, "color": "#e74c3c", "shape": "ellipse", "attributes": {"风险指数": "1.00", "违规数": 4, "场景": "交叉口场景", "检测时间": "09:54:21"}}, {"id": "rule_7_0", "label": "RSS_LONGITUDINAL\nRSS-001", "type": "violation", "x": 12.0, "y": 10, "color": "#e74c3c", "shape": "ellipse", "attributes": {"等级": "high", "消息": "与车辆距离 11.3m 低于最小安全距离 43.0m"}}, {"id": "rule_7_1", "label": "RSS_LONGITUDINAL\nRSS-001", "type": "violation", "x": 17.0, "y": 15, "color": "#e74c3c", "shape": "ellipse", "attributes": {"等级": "high", "消息": "与车辆距离 11.3m 低于最小安全距离 43.0m"}}, {"id": "rule_7_2", "label": "RIGHT_OF_WAY\nR3-001", "type": "violation", "x": 22.0, "y": 20, "color": "#e74c3c", "shape": "ellipse", "attributes": {"等级": "high", "消息": "右侧车辆有优先通行权，自车应让行"}}, {"id": "rule_7_3", "label": "RIGHT_OF_WAY\nR3-001", "type": "violation", "x": 27.0, "y": 25, "color": "#e74c3c", "shape": "ellipse", "attributes": {"等级": "high", "消息": "右侧车辆有优先通行权，自车应让行"}}, {"id": "violation_8", "label": "9. R1-001\nMEDIUM", "type": "violation", "x": 24.0, "y": 10, "color": "#e74c3c", "shape": "ellipse", "attributes": {"风险指数": "0.50", "违规数": 1, "场景": "红灯场景", "检测时间": "09:54:22"}}, {"id": "rule_8_0", "label": "TRAFFIC_LIGHT\nR1-001", "type": "violation", "x": 24.0, "y": 10, "color": "#e74c3c", "shape": "ellipse", "attributes": {"等级": "high", "消息": "红灯未停车，距离 6.0m"}}, {"id": "violation_9", "label": "10. RSS-001\nCRITICAL", "type": "violation", "x": 30, "y": 22.0, "color": "#e74c3c", "shape": "ellipse", "attributes": {"风险指数": "0.90", "违规数": 3, "场景": "合流场景", "检测时间": "09:54:23"}}, {"id": "rule_9_0", "label": "RSS_LONGITUDINAL\nRSS-001", "type": "violation", "x": 30, "y": 22.0, "color": "#e74c3c", "shape": "ellipse", "attributes": {"等级": "high", "消息": "与车辆距离 15.6m 低于最小安全距离 53.5m"}}, {"id": "rule_9_1", "label": "RSS_LONGITUDINAL\nRSS-001", "type": "violation", "x": 35, "y": 27.0, "color": "#e74c3c", "shape": "ellipse", "attributes": {"等级": "high", "消息": "与车辆距离 13.0m 低于最小安全距离 53.5m"}}, {"id": "rule_9_2", "label": "RSS_LONGITUDINAL\nRSS-001", "type": "violation", "x": 40, "y": 32.0, "color": "#e74c3c", "shape": "ellipse", "attributes": {"等级": "high", "消息": "与车辆距离 23.3m 低于最小安全距离 53.5m"}}];
+        const links = [{"source": "ego", "target": "violation_0", "type": "detected", "label": "检测到"}, {"source": "violation_0", "target": "rule_0_0", "type": "contains", "label": "包含"}, {"source": "ego", "target": "violation_1", "type": "detected", "label": "检测到"}, {"source": "violation_1", "target": "rule_1_0", "type": "contains", "label": "包含"}, {"source": "violation_1", "target": "rule_1_1", "type": "contains", "label": "包含"}, {"source": "violation_1", "target": "rule_1_2", "type": "contains", "label": "包含"}, {"source": "ego", "target": "violation_2", "type": "detected", "label": "检测到"}, {"source": "violation_2", "target": "rule_2_0", "type": "contains", "label": "包含"}, {"source": "ego", "target": "violation_3", "type": "detected", "label": "检测到"}, {"source": "violation_3", "target": "rule_3_0", "type": "contains", "label": "包含"}, {"source": "violation_3", "target": "rule_3_1", "type": "contains", "label": "包含"}, {"source": "violation_3", "target": "rule_3_2", "type": "contains", "label": "包含"}, {"source": "violation_3", "target": "rule_3_3", "type": "contains", "label": "包含"}, {"source": "ego", "target": "violation_4", "type": "detected", "label": "检测到"}, {"source": "violation_4", "target": "rule_4_0", "type": "contains", "label": "包含"}, {"source": "ego", "target": "violation_5", "type": "detected", "label": "检测到"}, {"source": "violation_5", "target": "rule_5_0", "type": "contains", "label": "包含"}, {"source": "violation_5", "target": "rule_5_1", "type": "contains", "label": "包含"}, {"source": "violation_5", "target": "rule_5_2", "type": "contains", "label": "包含"}, {"source": "ego", "target": "violation_6", "type": "detected", "label": "检测到"}, {"source": "violation_6", "target": "rule_6_0", "type": "contains", "label": "包含"}, {"source": "ego", "target": "violation_7", "type": "detected", "label": "检测到"}, {"source": "violation_7", "target": "rule_7_0", "type": "contains", "label": "包含"}, {"source": "violation_7", "target": "rule_7_1", "type": "contains", "label": "包含"}, {"source": "violation_7", "target": "rule_7_2", "type": "contains", "label": "包含"}, {"source": "violation_7", "target": "rule_7_3", "type": "contains", "label": "包含"}, {"source": "ego", "target": "violation_8", "type": "detected", "label": "检测到"}, {"source": "violation_8", "target": "rule_8_0", "type": "contains", "label": "包含"}, {"source": "ego", "target": "violation_9", "type": "detected", "label": "检测到"}, {"source": "violation_9", "target": "rule_9_0", "type": "contains", "label": "包含"}, {"source": "violation_9", "target": "rule_9_1", "type": "contains", "label": "包含"}, {"source": "violation_9", "target": "rule_9_2", "type": "contains", "label": "包含"}];
+        const summary = {"total_scenarios": 10, "risk_distribution": {"MEDIUM": 5, "CRITICAL": 5}, "avg_duration_ms": 0.10781288146972656};
+        
+        // 渲染节点
+        nodes.forEach(node => {
+            const el = document.createElement('div');
+            el.className = 'node';
+            el.style.left = (node.x + 400) + 'px';
+            el.style.top = (node.y + 300) + 'px';
+            el.style.setProperty('--color', node.color);
+            
+            let attrsHtml = '';
+            for (const [k, v] of Object.entries(node.attributes)) {
+                attrsHtml += '<div>' + k + ': ' + v + '</div>';
+            }
+            
+            el.innerHTML = '<div class="node-label">' + node.label + '</div>' +
+                           '<div class="node-attrs">' + attrsHtml + '</div>';
+            
+            el.onclick = () => {
+                alert('ID: ' + node.id + '\n类型: ' + node.type + '\n属性: ' + JSON.stringify(node.attributes, null, 2));
+            };
+            
+            document.getElementById('graphContainer').appendChild(el);
+        });
+        
+        // 渲染链接
+        links.forEach(link => {
+            const el = document.createElement('div');
+            el.className = 'link';
+            document.getElementById('graphContainer').appendChild(el);
+        });
+        
+    </script>
+</body>
+</html>
