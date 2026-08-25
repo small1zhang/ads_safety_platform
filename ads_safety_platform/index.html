@@ -942,12 +942,12 @@
                     <div class="risk-indicator">
                         <div class="risk-level">
                             <span>当前风险等级:</span>
-                            <span class="risk-badge high" id="riskBadge">HIGH</span>
+                            <span class="risk-badge low" id="riskBadge">LOW</span>
                         </div>
                         <div class="risk-meter">
-                            <div class="risk-meter-fill high" id="riskMeter"></div>
+                            <div class="risk-meter-fill low" id="riskMeter"></div>
                         </div>
-                        <div style="margin-left: 10px; color: #7f8c8d;">风险指数: <span id="riskIndex">0.82</span></div>
+                        <div style="margin-left: 10px; color: #7f8c8d;">风险指数: <span id="riskIndex">0.25</span></div>
                     </div>
                 </div>
                 
@@ -1185,9 +1185,9 @@
             });
             
             // Update risk indicator
-            const riskLevels = ['LOW', 'MEDIUM', 'HIGH'];
-            const riskColors = ['low', 'medium', 'high'];
-            const riskValues = [0.25, 0.55, 0.82];
+            const riskLevels = ['LOW'];
+            const riskColors = ['low'];
+            const riskValues = [0.25];
             
             let currentRisk = 0;
             setInterval(() => {

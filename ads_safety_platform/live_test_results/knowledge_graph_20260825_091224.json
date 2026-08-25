@@ -1,0 +1,14 @@
+{
+  "nodes": [
+    {
+      "id": "ego",
+      "label": "Ego Vehicle",
+      "type": "vehicle",
+      "x": -15.0,
+      "y": 0,
+      "speed": 10.0,
+      "color": "#27ae60"
+    }
+  ],
+  "links": []
+}
