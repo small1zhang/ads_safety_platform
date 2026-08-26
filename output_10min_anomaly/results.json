@@ -1,0 +1,233 @@
+{
+  "duration": 600.457161,
+  "total_collected": 600,
+  "total_violations": 9,
+  "violation_rate": 1.5,
+  "anomaly_stats": {
+    "sudden_brake": 0,
+    "tailgating": 0,
+    "close_call": 99
+  },
+  "violation_stats": {
+    "unknown": 9
+  },
+  "risk_distribution": {
+    "CRITICAL": 1,
+    "HIGH": 0,
+    "MEDIUM": 4,
+    "LOW": 595,
+    "SAFE": 0
+  },
+  "results": [
+    {
+      "scenario_id": 7,
+      "scenario_name": "\u68c0\u6d4b_7",
+      "timestamp": "2026-08-26T17:28:28.970421",
+      "anomaly_type": "normal",
+      "ego_x": 85.31341552734375,
+      "ego_y": 3.3459715843200684,
+      "ego_speed": 30.25801567233669,
+      "vehicle_count": 4,
+      "violations": [
+        {
+          "rule": "RSS_LATERAL",
+          "code": "RSS-002",
+          "level": "high",
+          "message": "\u4e0e\u8f66\u8f86\u6a2a\u5411\u8ddd\u79bb 4.3m \u4f4e\u4e8e\u5b89\u5168\u8ddd\u79bb",
+          "entities": [
+            "ego",
+            "vehicle.npc_0"
+          ],
+          "details": {
+            "lateral_distance": 4.295950073874734,
+            "ego_speed": 30.25801567233669,
+            "other_speed": 9.100117273476478
+          }
+        },
+        {
+          "rule": "RSS_LATERAL",
+          "code": "RSS-002",
+          "level": "high",
+          "message": "\u4e0e\u8f66\u8f86\u6a2a\u5411\u8ddd\u79bb 2.9m \u4f4e\u4e8e\u5b89\u5168\u8ddd\u79bb",
+          "entities": [
+            "ego",
+            "vehicle.npc_1"
+          ],
+          "details": {
+            "lateral_distance": 2.8730291559920436,
+            "ego_speed": 30.25801567233669,
+            "other_speed": 10.706797949691644
+          }
+        },
+        {
+          "rule": "RSS_LATERAL",
+          "code": "RSS-002",
+          "level": "high",
+          "message": "\u4e0e\u8f66\u8f86\u6a2a\u5411\u8ddd\u79bb 4.2m \u4f4e\u4e8e\u5b89\u5168\u8ddd\u79bb",
+          "entities": [
+            "ego",
+            "vehicle.npc_2"
+          ],
+          "details": {
+            "lateral_distance": 4.172093919061236,
+            "ego_speed": 30.25801567233669,
+            "other_speed": 9.687687278741082
+          }
+        },
+        {
+          "rule": "RSS_LATERAL",
+          "code": "RSS-002",
+          "level": "high",
+          "message": "\u4e0e\u8f66\u8f86\u6a2a\u5411\u8ddd\u79bb 3.9m \u4f4e\u4e8e\u5b89\u5168\u8ddd\u79bb",
+          "entities": [
+            "ego",
+            "vehicle.npc_3"
+          ],
+          "details": {
+            "lateral_distance": 3.9086956347128616,
+            "ego_speed": 30.25801567233669,
+            "other_speed": 10.021421152413449
+          }
+        },
+        {
+          "rule": "RSS_LATERAL",
+          "code": "RSS-002",
+          "level": "high",
+          "message": "\u4e0e\u8f66\u8f86\u6a2a\u5411\u8ddd\u79bb 4.4m \u4f4e\u4e8e\u5b89\u5168\u8ddd\u79bb",
+          "entities": [
+            "ego",
+            "vehicle.npc"
+          ],
+          "details": {
+            "lateral_distance": 4.391957759857178,
+            "ego_speed": 30.25801567233669,
+            "other_speed": 0.0025612423380803684
+          }
+        }
+      ],
+      "risk_index": 1.0,
+      "risk_level": "CRITICAL",
+      "duration_ms": 0.202178955078125
+    },
+    {
+      "scenario_id": 19,
+      "scenario_name": "\u68c0\u6d4b_19",
+      "timestamp": "2026-08-26T17:28:40.980025",
+      "anomaly_type": "normal",
+      "ego_x": 129.28173828125,
+      "ego_y": 80.8424301147461,
+      "ego_speed": 0.015533615293345982,
+      "vehicle_count": 4,
+      "violations": [
+        {
+          "rule": "RSS_LATERAL",
+          "code": "RSS-002",
+          "level": "high",
+          "message": "\u4e0e\u8f66\u8f86\u6a2a\u5411\u8ddd\u79bb 3.5m \u4f4e\u4e8e\u5b89\u5168\u8ddd\u79bb",
+          "entities": [
+            "ego",
+            "vehicle.npc"
+          ],
+          "details": {
+            "lateral_distance": 3.4747772216796875,
+            "ego_speed": 0.015533615293345982,
+            "other_speed": 9.12488830472385
+          }
+        }
+      ],
+      "risk_index": 0.5,
+      "risk_level": "MEDIUM",
+      "duration_ms": 0.1327991485595703
+    },
+    {
+      "scenario_id": 31,
+      "scenario_name": "\u68c0\u6d4b_31",
+      "timestamp": "2026-08-26T17:28:52.989078",
+      "anomaly_type": "normal",
+      "ego_x": 129.33233642578125,
+      "ego_y": 80.84205627441406,
+      "ego_speed": 0.0018764158811366634,
+      "vehicle_count": 4,
+      "violations": [
+        {
+          "rule": "RSS_LATERAL",
+          "code": "RSS-002",
+          "level": "high",
+          "message": "\u4e0e\u8f66\u8f86\u6a2a\u5411\u8ddd\u79bb 0.9m \u4f4e\u4e8e\u5b89\u5168\u8ddd\u79bb",
+          "entities": [
+            "ego",
+            "vehicle.npc"
+          ],
+          "details": {
+            "lateral_distance": 0.8741455078125,
+            "ego_speed": 0.0018764158811366634,
+            "other_speed": 6.911117601550725
+          }
+        }
+      ],
+      "risk_index": 0.5,
+      "risk_level": "MEDIUM",
+      "duration_ms": 0.08821487426757812
+    },
+    {
+      "scenario_id": 38,
+      "scenario_name": "\u68c0\u6d4b_38",
+      "timestamp": "2026-08-26T17:28:59.994419",
+      "anomaly_type": "normal",
+      "ego_x": 129.4244842529297,
+      "ego_y": 80.91448211669922,
+      "ego_speed": 0.012010682129073956,
+      "vehicle_count": 4,
+      "violations": [
+        {
+          "rule": "RSS_LATERAL",
+          "code": "RSS-002",
+          "level": "high",
+          "message": "\u4e0e\u8f66\u8f86\u6a2a\u5411\u8ddd\u79bb 0.6m \u4f4e\u4e8e\u5b89\u5168\u8ddd\u79bb",
+          "entities": [
+            "ego",
+            "vehicle.npc"
+          ],
+          "details": {
+            "lateral_distance": 0.5548858642578125,
+            "ego_speed": 0.012010682129073956,
+            "other_speed": 0.9026239296276583
+          }
+        }
+      ],
+      "risk_index": 0.5,
+      "risk_level": "MEDIUM",
+      "duration_ms": 0.12350082397460938
+    },
+    {
+      "scenario_id": 43,
+      "scenario_name": "\u68c0\u6d4b_43",
+      "timestamp": "2026-08-26T17:29:04.998233",
+      "anomaly_type": "normal",
+      "ego_x": 129.44540405273438,
+      "ego_y": 80.90150451660156,
+      "ego_speed": 0.007799811909450915,
+      "vehicle_count": 4,
+      "violations": [
+        {
+          "rule": "RSS_LATERAL",
+          "code": "RSS-002",
+          "level": "high",
+          "message": "\u4e0e\u8f66\u8f86\u6a2a\u5411\u8ddd\u79bb 4.8m \u4f4e\u4e8e\u5b89\u5168\u8ddd\u79bb",
+          "entities": [
+            "ego",
+            "vehicle.npc"
+          ],
+          "details": {
+            "lateral_distance": 4.785621643066406,
+            "ego_speed": 0.007799811909450915,
+            "other_speed": 10.587274327125531
+          }
+        }
+      ],
+      "risk_index": 0.5,
+      "risk_level": "MEDIUM",
+      "duration_ms": 0.15544891357421875
+    }
+  ]
+}
