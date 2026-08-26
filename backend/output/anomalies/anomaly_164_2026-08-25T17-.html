@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>异常详情 #2026-08-25 - 交叉口场景</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: #e0e0e0;
+            padding: 20px;
+        }
+        .header {
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .risk-badge.{
+            padding: 10px 25px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 18px;
+            display: inline-block;
+        }
+        .risk-badge.critical { background: #e74c3c; }
+        .risk-badge.high { background: #e67e22; }
+        .risk-badge.medium { background: #f39c12; }
+        .risk-badge.low { background: #2ecc71; }
+        .violation {
+            background: rgba(255,255,255,0.05);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid #e74c3c;
+        }
+        .violation.medium { border-left-color: #f39c12; }
+        .violation.low { border-left-color: #2ecc71; }
+        .back-btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .back-btn:hover { background: #764ba2; }
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+        }
+        .info p { margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔍 异常详情</h1>
+        <h2>交叉口场景</h2>
+        <span class="risk-badge high">HIGH (0.7)</span>
+    </div>
+    
+    <div class="info">
+        <p><strong>时间戳:</strong> 2026-08-25T17:26:07.404052</p>
+        <p><strong>场景类型:</strong> intersection</p>
+        <p><strong>自车位置:</strong> (-8.0, 0.0)m</p>
+        <p><strong>自车速度:</strong> 18.0 m/s</p>
+        <p><strong>车辆数量:</strong> 2</p>
+        <p><strong>检测耗时:</strong> 0.17ms</p>
+    </div>
+    
+    <h2>⚠️ 检测到的违规 (2 个)</h2>
+    
+            <div class="violation high">
+                <strong>[RSS-001] RSS_LONGITUDINAL</strong><br>
+                与车辆距离 11.3m 低于最小安全距离 48.1m
+            </div>
+            
+            <div class="violation high">
+                <strong>[RSS-001] RSS_LONGITUDINAL</strong><br>
+                与车辆距离 11.3m 低于最小安全距离 48.1m
+            </div>
+            
+    
+    <div style="margin-top: 30px;">
+        <button class="back-btn" onclick="history.back()">← 返回仪表盘</button>
+    </div>
+</body>
+</html>
