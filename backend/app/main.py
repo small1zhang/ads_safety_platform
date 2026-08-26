@@ -11,7 +11,7 @@ backend/app/main.py - FastAPI 主入口
 - 数据库持久化
 """
 
-from fastapi import FastAPI, WebSocket, BackgroundTasks, HTTPException
+from fastapi import FastAPI, WebSocket, BackgroundTasks, HTTPException, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -92,6 +92,16 @@ class DetectionResponse(BaseModel):
 
 # ============== 健康检查 ==============
 
+@app.get("/dashboard")
+async def get_dashboard():
+    """返回仪表盘HTML页面"""
+    from fastapi.responses import FileResponse
+    
+    file_path = os.path.join(settings.output_dir, "detection_dashboard.html")
+    if os.path.exists(file_path):
+        return FileResponse(file_path, media_type="text/html")
+    raise HTTPException(status_code=404, detail="仪表盘未找到，请先运行检测")
+
 @app.get("/api/health")
 async def health_check():
     """健康检查端点"""
@@ -135,11 +145,16 @@ async def update_config(config: Dict[str, Any]):
 
 # ============== 实时检测 ==============
 
+class DetectRequest(BaseModel):
+    """检测请求模型"""
+    duration: float = Field(default=60, ge=1, le=3600, description="检测时长(秒)")
+    interval: float = Field(default=1.0, ge=0.1, le=10, description="采样间隔(秒)")
+    inject_anomalies: bool = Field(default=True, description="注入异常场景")
+
+
 @app.post("/api/detect/run")
 async def run_detection(
-    duration: float = Field(default=60, ge=1, le=3600, description="检测时长(秒)"),
-    interval: float = Field(default=1.0, ge=0.1, le=10, description="采样间隔(秒)"),
-    inject_anomalies: bool = Field(default=True, description="注入异常场景"),
+    request: DetectRequest = Body(default=DetectRequest()),
     background_tasks: BackgroundTasks = None
 ):
     """
@@ -163,10 +178,10 @@ async def run_detection(
         inject_anomalies = True
     
     results = await detector.run_continuous(
-        duration=duration,
-        interval=interval,
+        duration=request.duration,
+        interval=request.interval,
         carla_client=carla_client,
-        inject_anomalies=inject_anomalies
+        inject_anomalies=request.inject_anomalies
     )
     
     return results

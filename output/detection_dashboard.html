@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADS Safety Platform - 实时检测仪表盘</title>
+    <style>
+        :root {
+            --primary: #667eea;
+            --primary-dark: #764ba2;
+            --danger: #ff4d4f;
+            --warning: #faad14;
+            --success: #52c41a;
+            --info: #1890ff;
+            --light: #f0f2f5;
+            --dark: #333;
+            --bg-gradient-start: #0f0c29;
+            --bg-gradient-end: #302b63;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #e0e0e0;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #fff 0%, #e0e0e0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: none;
+        }
+        
+        header p {
+            font-size: 1.2em;
+            opacity: 0.8;
+            color: #aaa;
+        }
+        
+        /* 统计卡片 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: rgba(255,255,255,0.08);
+            border-radius: 15px;
+            padding: 30px 20px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            background: rgba(255,255,255,0.12);
+        }
+        
+        .stat-value {
+            font-size: 2.2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-value.critical { color: var(--danger); }
+        .stat-value.high { color: var(--warning); }
+        .stat-value.medium { color: #f39c12; }
+        .stat-value.low { color: var(--success); }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* 最近检测结果 */
+        .recent-cases {
+            background: rgba(255,255,255,0.08);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .recent-cases h2 {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 10px;
+        }
+        
+        .cases-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        
+        .case-card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid;
+            transition: all 0.3s;
+        }
+        
+        .case-card:hover {
+            background: rgba(255,255,255,0.08);
+            transform: translateX(5px);
+        }
+        
+        .case-card.critical { border-left-color: var(--danger); }
+        .case-card.high { border-left-color: var(--warning); }
+        .case-card.medium { border-left-color: #f39c12; }
+        .case-card.low { border-left-color: var(--success); }
+        
+        .case-scenario {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 8px;
+        }
+        
+        .case-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 10px;
+            font-size: 0.85em;
+        }
+        
+        .info-item span:first-child {
+            color: #aaa;
+            margin-right: 10px;
+        }
+        
+        .info-item span:last-child {
+            font-weight: bold;
+        }
+        
+        .case-violations {
+            font-size: 0.75em;
+            margin-top: 8px;
+        }
+        
+        .case-violations span {
+            display: inline-block;
+            margin-right: 6px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7em;
+        }
+        
+        /* 风险等级标签 */
+        .risk-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.7em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .risk-badge.critical { background: var(--danger); color: white; }
+        .risk-badge.high { background: var(--warning); color: #1a1a1a; }
+        .risk-badge.medium { background: #f39c12; color: #1a1a1a; }
+        .risk-badge.low { background: var(--success); color: white; }
+        
+        /* 车辆状态 */
+        .vehicle-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .vehicle-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* CARLA连接状态 */
+        .carla-status {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(255,255,255,0.1);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+        }
+        
+        .carla-status.connected {
+            background: rgba(82,196,26,0.3);
+        }
+        
+        .carla-status.disconnected {
+            background: rgba(237,50,50,0.3);
+        }
+        
+        .carla-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 6px;
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        
+        /* 按钮 */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9em;
+            font-weight: 500;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s;
+        }
+        
+        .btn:focus { outline: 2px solid var(--primary); outline-offset: 2px; }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover { background: var(--primary-dark); }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .btn-warning {
+            background: var(--warning);
+            color: #1a1a1a;
+        }
+        
+        .btn-info {
+            background: var(--info);
+            color: white;
+        }
+        
+        /* 页脚 */
+        footer {
+            margin-top: 50px;
+            text-align: center;
+            opacity: 0.6;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚗 ADS Safety Platform</h1>
+            <p>实时异常检测仪表盘</p>
+        </header>
+        
+        <!-- 统计概览卡片 -->
+        <div class="stats-grid" id="statsGrid">
+            <!-- 动态填充 -->
+        </div>
+        
+        <!-- 最近检测结果 -->
+        <div class="recent-cases">
+            <h2>📋 最近检测结果</h2>
+            <div class="cases-grid" id="casesGrid">
+                <!-- 动态填充 -->
+            </div>
+        </div>
+        
+        <!-- CARLA状态 -->
+        <div class="carla-status" id="carlaStatus" style="justify-self: end;">
+            <span class="carla-dot"></span>
+            <span>CARLA: <span id="carlaText">未连接</span></span>
+        </div>
+        
+        <!-- 运行检测按钮 -->
+        <div style="justify-self: end; margin-top: 20px;">
+            <button class="btn btn-primary" onclick="startDetection(10)">10秒检测</button>
+            <button class="btn btn-success" onclick="startDetection(30)">30秒检测</button>
+            <button class="btn btn-warning" onclick="generateKG()">生成知识图谱</button>
+        </div>
+    </div>
+    
+    <footer>
+        ADS Safety Platform v2.0 | 基于FastAPI + 纯HTML可视化
+    </footer>
+    
+    <script>
+        // API 基础URL
+        const API_BASE = 'http://172.18.42.56:8000/api';
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', async function() {
+            await updateStats();
+            await updateCases();
+            await updateCARLAStatus();
+            setInterval(updateStats, 5000);
+            setInterval(updateCases, 5000);
+            setInterval(updateCARLAStatus, 3000);
+        });
+        
+        // 更新统计卡片
+        async function updateStats() {
+            try {
+                const resp = await fetch(`${API_BASE}/detect/history?limit=1`);
+                if (!resp.ok) throw new Error('API error');
+                const data = await resp.json();
+                const stats = data.stats || {total: 0, critical: 0, high: 0, medium: 0, low: 0};
+                
+                document.getElementById('statsGrid').innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-value critical">${stats.critical || 0}</div>
+                        <div class="stat-label">危急</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value high">${stats.high || 0}</div>
+                        <div class="stat-label">高危</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value medium">${stats.medium || 0}</div>
+                        <div class="stat-label">中危</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value low">${stats.low || 0}</div>
+                        <div class="stat-label">低危</div>
+                    </div>
+                    <div class="stat-card" style="border-color: var(--primary);">
+                        <div class="stat-value">${stats.total || 0}</div>
+                        <div class="stat-label">总异常</div>
+                    </div>
+                `;
+            } catch (e) {
+                console.error('更新统计失败:', e);
+                document.getElementById('statsGrid').innerHTML = '<div style="color:#667eea;padding:30px;">无法连接后端API</div>';
+            }
+        }
+        
+        // 更新最近检测结果
+        async function updateCases() {
+            try {
+                const resp = await fetch(`${API_BASE}/detect/history?limit=6`);
+                if (!resp.ok) throw new Error('API error');
+                const data = await resp.json();
+                const cases = data.history || [];
+                
+                document.getElementById('casesGrid').innerHTML = cases.map((case_, i) => {
+                    const riskClass = case_.risk_level.toLowerCase();
+                    const riskBadge = `<span class="risk-badge ${riskClass}">${riskClass}</span>`;
+                    const violationsHtml = case_.violations?.map(v => `<span title="${v.message}">${v.code}</span>`).join(' ') || '';
+                    
+                    return `
+                        <div class="case-card ${riskClass}">
+                            <div class="case-scenario">${case_.scenario_name}</div>
+                            <div class="case-info">
+                                <span>时间:${new Date(case_.timestamp).toLocaleTimeString()}</span>
+                                <span>速度:${case_.ego_speed.toFixed(1)}m/s</span>
+                            </div>
+                            <div class="case-violations">${violationsHtml}</div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (e) {
+                console.error('更新案例失败:', e);
+                document.getElementById('casesGrid').innerHTML = '<div style="color:#667eea;padding:20px;">加载中...</div>';
+            }
+        }
+        
+        // 更新CARLA状态
+        async function updateCARLAStatus() {
+            try {
+                const resp = await fetch(`${API_BASE}/health`);
+                if (!resp.ok) throw new Error('API error');
+                const data = await resp.json();
+                const isConnected = data.carla_connected === true;
+                const statusEl = document.getElementById('carlaStatus');
+                const textEl = document.getElementById('carlaText');
+                const dotEl = statusEl.querySelector('.carla-dot');
+                
+                if (isConnected) {
+                    dotEl.style.background = 'var(--success)';
+                    textEl.textContent = '在线';
+                    statusEl.className = 'carla-status connected';
+                } else {
+                    dotEl.style.background = 'var(--danger)';
+                    textEl.textContent = '离线';
+                    statusEl.className = 'carla-status disconnected';
+                }
+            } catch (e) {
+                console.error('更新CARLA状态失败:', e);
+                document.getElementById('carlaText').textContent = '错误';
+            }
+        }
+        
+        // 开始检测
+        async function startDetection(duration) {
+            if (!confirm(`确定要运行 ${duration} 秒检测吗？`)) return;
+            
+            try {
+                const resp = await fetch(`${API_BASE}/detect/run`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({duration, interval: 1.0, inject_anomalies: true})
+                });
+                
+                if (!resp.ok) {
+                    const err = await resp.text();
+                    alert('检测失败: ' + err);
+                    return;
+                }
+                
+                const result = await resp.json();
+                if (result.success) {
+                    alert(`检测完成! 检测到 ${result.stats.total} 个异常`);
+                    // 刷新页面
+                    updateStats();
+                    updateCases();
+                }
+            } catch (e) {
+                alert('请求错误: ' + e.message);
+            }
+        }
+        
+        // 生成知识图谱
+        async function generateKG() {
+            if (!confirm('确定要生成知识图谱吗？')) return;
+            
+            try {
+                const resp = await fetch(`${API_BASE}/kg/generate`, {
+                    method: 'GET'
+                });
+                
+                if (!resp.ok) {
+                    const err = await resp.text();
+                    alert('生成失败: ' + err);
+                    return;
+                }
+                
+                const result = await resp.json();
+                if (result.success) {
+                    window.open('/output/knowledge_graph.html', '_blank');
+                    alert('知识图谱生成中，请查看新窗口');
+                }
+            } catch (e) {
+                alert('请求错误: ' + e.message);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -4,7 +4,7 @@
 backend/app/config.py - 配置管理
 """
 
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
 from typing import Optional
 
 
@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     max_scenarios: int = 1000
     
     # 输出配置
-    output_dir: str = "/app/output"
+    output_dir: str = "/home/aisecurity/01_ZHB/output"
     temp_dir: str = "/tmp"
     
     # 风险阈值
