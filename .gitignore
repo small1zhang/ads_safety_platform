@@ -3,69 +3,23 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# Virtual environments
+.venv/
 venv/
-env/
-ENV/
-.env
+
+# Node
+node_modules/
 
 # IDE
 .vscode/
 .idea/
-*.swp
-*.swo
-*~
+
+# Output files (generated)
+output/*.html
+output/*.json
 
 # OS
 .DS_Store
-Thumbs.db
-
-# CARLA specific
 *.log
-*.png
-*.jpg
-*.jpeg
-*.mp4
-*.avi
 
-# Scene evidence (can be large, consider LFS)
-scene_evidence/
-
-# Safety logs
-safety_logs/
-
-# Build artifacts
-*.pyc
-*.pyo
-*.pyd
-.Python
-
-# Temp files
-*.tmp
-*.bak
-*.orig
-
-# Knowledge graph snapshots (optional, can be large)
-kg_snapshots/
-kg_data/
-
-# GNN training data (optional)
-gnn_data/
-training_checkpoints/
+# ZCode
+.zcode/

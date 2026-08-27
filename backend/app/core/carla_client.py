@@ -71,33 +71,85 @@ class CARLAClient:
         """断开连接"""
         self._connected = False
     
-    async def get_data(self) -> Dict[str, Any]:
-        """获取CARLA数据（真实模式下返回实际数据）"""
+    def get_data(self) -> Dict[str, Any]:
+        """获取CARLA数据（同步方法）"""
         if not self.is_connected():
             return {"error": "CARLA未连接", "connected": False}
         
-        # 模拟获取数据（实际可对接carla Python API）
-        await asyncio.sleep(0.05)
-        
-        return {
-            "connected": True,
-            "ego": {
-                "x": random.uniform(-50, 50),
-                "y": random.uniform(-50, 50),
-                "speed": random.uniform(0, 30),
-                "yaw": random.uniform(0, 360)
-            },
-            "vehicles": [
-                {
-                    "id": i,
-                    "x": random.uniform(-50, 50),
-                    "y": random.uniform(-50, 50),
-                    "speed": random.uniform(0, 20)
-                }
-                for i in range(random.randint(0, 8))
-            ],
-            "timestamp": time.time()
-        }
+        try:
+            import math
+            # 尝试导入carla（避免segfault）
+            try:
+                import carla
+            except ImportError:
+                return {"error": "carla未安装", "connected": False}
+            
+            # 获取世界和地图
+            world = self.client.get_world()
+            actors = world.get_actors()
+            
+            # 获取所有车辆
+            vehicles = []
+            ego_vehicle = None
+            
+            for actor in actors.filter('vehicle.*'):
+                transform = actor.get_transform()
+                velocity = actor.get_velocity()
+                speed = math.sqrt(velocity.x**2 + velocity.y**2 + velocity.z**2)
+                
+                # 检查是否是自车（role=ego）
+                if actor.attributes.get('role_name') == 'ego' or actor.type_id == 'vehicle.tesla.model3':
+                    ego_vehicle = {
+                        "id": actor.id,
+                        "x": transform.location.x,
+                        "y": transform.location.y,
+                        "z": transform.location.z,
+                        "speed": speed,
+                        "yaw": math.degrees(transform.rotation.yaw),
+                        "type": actor.type_id
+                    }
+                else:
+                    vehicles.append({
+                        "id": actor.id,
+                        "x": transform.location.x,
+                        "y": transform.location.y,
+                        "z": transform.location.z,
+                        "speed": speed,
+                        "type": actor.type_id
+                    })
+            
+            # 如果没有找到ego车，取第一辆车
+            if ego_vehicle is None and vehicles:
+                first = vehicles.pop(0)
+                ego_vehicle = first.copy()
+                ego_vehicle["type"] = "ego_vehicle"
+            
+            # 获取行人
+            pedestrians = []
+            for actor in actors.filter('walker.*'):
+                transform = actor.get_transform()
+                velocity = actor.get_velocity()
+                speed = math.sqrt(velocity.x**2 + velocity.y**2 + velocity.z**2)
+                pedestrians.append({
+                    "id": actor.id,
+                    "x": transform.location.x,
+                    "y": transform.location.y,
+                    "z": transform.location.z,
+                    "speed": speed
+                })
+            
+            return {
+                "connected": True,
+                "ego": ego_vehicle or {"x": 0, "y": 0, "z": 0, "speed": 0, "yaw": 0, "type": "none"},
+                "vehicles": vehicles,
+                "pedestrians": pedestrians,
+                "timestamp": time.time()
+            }
+            
+        except Exception as e:
+            # 捕获segfault或其他错误，返回安全状态
+            print(f"读取CARLA数据失败: {e}")
+            return {"error": str(e), "connected": False}
     
     async def set_scenario(self, scenario: str) -> bool:
         """设置场景"""

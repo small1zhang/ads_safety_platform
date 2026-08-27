@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADS Safety Platform 前端</title>
+    <!-- 本地CDN资源 -->
+    <script src="/cdn/react.min.js"></script>
+    <script src="/cdn/react-dom.min.js"></script>
+    <script src="/cdn/babel.min.js"></script>
+    <script src="/cdn/axios.min.js"></script>
+    <script src="/cdn/antd.min.js"></script>
+    <link href="/cdn/reset.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        .stat-item {
+            background: rgba(255,255,255,0.1);
+            padding: 15px 25px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #aaa;
+        }
+        .btn {
+            padding: 10px 20px;
+            margin: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            border: none;
+            background: #667eea;
+            color: white;
+        }
+        .btn:hover { background: #764ba2; }
+        .btn-primary { background: #1890ff; }
+        .btn-success { background: #52c41a; }
+        .btn-danger { background: #ff4d4f; }
+        .btn-warning { background: #faad14; }
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border-color: #667eea;
+        }
+        .risk-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .risk-badge.critical { background: #e74c3c; }
+        .risk-badge.high { background: #e67e22; }
+        .risk-badge.medium { background: #f39c12; }
+        .risk-badge.low { background: #2ecc71; }
+        .kg-btn {
+            display: block;
+            margin: 20px auto;
+            padding: 15px 30px;
+            background: #27ae60;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .kg-btn:hover { background: #2ecc71; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+<script type="text/babel">
+const { useState, useEffect } = React;
+const { Button, Statistic, Row, Col, Card, Typography, Spin } = antd;
+
+const { Title, Text } = Typography;
+
+const apiUrl = 'http://localhost:8000/api';
+
+function App() {
+    const [health, setHealth] = useState(null);
+    const [stats, setStats] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [knowledgeGraph, setKnowledgeGraph] = useState(null);
+    
+    useEffect(() => {
+        fetchHealth();
+        fetchStats();
+        fetchKG();
+        
+        const interval = setInterval(() => {
+            fetchStats();
+        }, 5000);
+        
+        return () => clearInterval(interval);
+    }, []);
+    
+    const fetchHealth = async () => {
+        try {
+            const response = await axios.get(`${apiUrl}/health`);
+            setHealth(response.data);
+        } catch (error) {
+            console.error('Health check failed:', error);
+        }
+    };
+    
+    const fetchStats = async () => {
+        try {
+            const response = await axios.get(`${apiUrl}/detect/history`);
+            setStats(response.data);
+            setLoading(false);
+        } catch (error) {
+            console.error('Stats fetch failed:', error);
+            setLoading(false);
+        }
+    };
+    
+    const fetchKG = async () => {
+        try {
+            const response = await axios.get(`${apiUrl}/kg/latest`);
+            setKnowledgeGraph(response.data);
+        } catch (error) {
+            console.log('No KG data yet');
+        }
+    };
+    
+    const runDetection = async (duration = 10) => {
+        try {
+            const response = await axios.post(`${apiUrl}/detect/run`, {
+                duration: duration,
+                interval: 1.0,
+                inject_anomalies: true
+            });
+            setStats(response.data);
+        } catch (error) {
+            console.error('Detection failed:', error);
+        }
+    };
+    
+    const generateKG = async () => {
+        try {
+            await axios.get(`${apiUrl}/kg/generate`);
+            fetchKG();
+        } catch (error) {
+            console.error('KG generation failed:', error);
+        }
+    };
+    
+    if (loading) {
+        return (
+            <div style={{ textAlign: 'center', marginTop: 50 }}>
+                <Spin size="large" />
+                <Text style={{ display: 'block', marginTop: 20 }}>加载中...</Text>
+            </div>
+        );
+    }
+    
+    const total = stats?.stats?.total || 0;
+    const critical = stats?.stats?.critical || 0;
+    const high = stats?.stats?.high || 0;
+    const medium = stats?.stats?.medium || 0;
+    const low = stats?.stats?.low || 0;
+    
+    return (
+        <div style={{ padding: 20 }}>
+            <div className="header">
+                <Title level={1}>🚗 ADS Safety Platform</Title>
+                <Title level={3}>实时异常检测仪表盘</Title>
+                <Text>状态: {health?.status === 'healthy' ? '🟢 在线' : '🔴 离线'} | 总时长: {total > 0 ? '检测中' : '就绪'}</Text>
+            </div>
+            
+            <div className="stats-bar">
+                <div className="stat-item">
+                    <div className="stat-value">{total}</div>
+                    <div className="stat-label">总异常数</div>
+                </div>
+                <div className="stat-item">
+                    <div className="stat-value" style={{ color: '#e74c3c' }}>{critical}</div>
+                    <div className="stat-label">危急</div>
+                </div>
+                <div className="stat-item">
+                    <div className="stat-value" style={{ color: '#e67e22' }}>{high}</div>
+                    <div className="stat-label">高危</div>
+                </div>
+                <div className="stat-item">
+                    <div className="stat-value" style={{ color: '#f39c12' }}>{medium}</div>
+                    <div className="stat-label">中危</div>
+                </div>
+                <div className="stat-item">
+                    <div className="stat-value" style={{ color: '#2ecc71' }}>{low}</div>
+                    <div className="stat-label">低危</div>
+                </div>
+            </div>
+            
+            <div style={{ marginBottom: 20 }}>
+                <Button className="btn btn-primary" onClick={() => runDetection(10)}>
+                    运行10秒检测
+                </Button>
+                <Button className="btn btn-success" onClick={() => runDetection(60)}>
+                    运行1分钟检测
+                </Button>
+                <Button className="btn-warning" onClick={generateKG}>
+                    生成知识图谱
+                </Button>
+            </div>
+            
+            <Button className="kg-btn" onClick={() => window.open('/knowledge_graph.html', '_blank')}>
+                📊 查看知识图谱
+            </Button>
+            
+            <div style={{ marginTop: 30 }}>
+                <Title level={3}>📋 最近检测结果</Title>
+                <div className="card-grid">
+                    {stats?.results?.slice(0, 6).map((r, i) => (
+                        <Card key={i} className="card" clickable>
+                            <Title level={5}>{r.scenario_name}</Title>
+                            <Text type="secondary">{new Date(r.timestamp).toLocaleString()}</Text>
+                            <br />
+                            <span className={`risk-badge ${r.risk_level.toLowerCase()}`}>
+                                {r.risk_level} ({r.risk_index})
+                            </span>
+                            <br />
+                            <Text type="secondary">速度: {r.ego_speed.toFixed(1)} m/s</Text>
+                            <br />
+                            <Text type="secondary">车辆: {r.vehicle_count}</Text>
+                            <br />
+                            <Text type="secondary">违规: {r.violations?.length || 0} 项</Text>
+                        </Card>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

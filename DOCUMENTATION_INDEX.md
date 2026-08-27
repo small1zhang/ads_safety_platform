@@ -116,6 +116,30 @@
   - 速率限制
 - **适用对象**: 前端开发者、API用户
 
+### 7.5. **docs/USER_GUIDE.md** ⭐⭐⭐⭐⭐
+- **位置**: `/docs/USER_GUIDE.md`
+- **用途**: 系统使用文档（完整版）
+- **内容**:
+  - 系统要求与安装
+  - 配置说明
+  - 4个检测脚本详细说明
+  - API 使用示例
+  - 常见问题与故障排除
+  - 最佳实践
+- **适用对象**: 所有用户
+
+### 7.6. **docs/PROJECT_INTRODUCTION.md** ⭐⭐⭐⭐⭐
+- **位置**: `/docs/PROJECT_INTRODUCTION.md`
+- **用途**: 项目介绍文档
+- **内容**:
+  - 核心功能概览
+  - RSS 规则详解
+  - 实时预警系统
+  - 风险指数计算
+  - 系统架构
+  - 技术栈
+- **适用对象**: 新成员、管理层
+
 ### 8. **docs/deployment.md** ⭐⭐⭐⭐
 - **位置**: `/docs/deployment.md`
 - **用途**: 部署指南
@@ -189,6 +213,8 @@
 - [docs/architecture.md](./docs/architecture.md) - 架构设计
 - [docs/api.md](./docs/api.md) - API文档
 - [docs/deployment.md](./docs/deployment.md) - 部署指南
+- [docs/PROJECT_INTRODUCTION.md](./docs/PROJECT_INTRODUCTION.md) - 项目介绍
+- [docs/USER_GUIDE.md](./docs/USER_GUIDE.md) - 系统使用文档
 
 ---
 
