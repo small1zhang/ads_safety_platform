@@ -526,17 +526,8 @@
         }
 
         function updateStatsFromEvent(data) {
-            const stats = {
-                total: 0, critical: 0, high: 0, medium: 0, low: 0
-            };
-            document.querySelectorAll('.case-card').forEach(card => {
-                stats.total++;
-                if (card.classList.contains('critical')) stats.critical++;
-                else if (card.classList.contains('high')) stats.high++;
-                else if (card.classList.contains('medium')) stats.medium++;
-                else if (card.classList.contains('low')) stats.low++;
-            });
-            renderStats(stats);
+            // 直接从后端拉取最新的真实统计，避免前端计数错误
+            updateStats();
         }
 
         // ===== REST 兜底 =====
