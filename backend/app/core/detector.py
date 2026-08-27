@@ -213,7 +213,7 @@ class AnomalyDetector:
         self, scenario_id, timestamp, scenario_name, risk_level,
         risk_index, ego_x, ego_y, ego_speed, vehicle_count, violations
     ) -> str:
-        """生成事件图谱HTML"""
+        """生成完整的事件知识图谱HTML"""
         risk_color = {
             "CRITICAL": "#ff4d4f",
             "HIGH": "#faad14",
@@ -221,10 +221,80 @@ class AnomalyDetector:
             "LOW": "#52c41a"
         }.get(risk_level, "#52c41a")
         
+        risk_glow = {
+            "CRITICAL": "0 0 30px #ff4d4f",
+            "HIGH": "0 0 20px #faad14",
+            "MEDIUM": "0 0 15px #f39c12",
+            "LOW": "0 0 10px #52c41a"
+        }.get(risk_level, "0 0 10px #52c41a")
+        
+        # 违规行为HTML
         violation_html = "".join([
-            f'<div class="v-item"><span class="v-badge" style="background:{risk_color}">{html.escape(v["level"])}</span> {html.escape(v["message"])}</div>'
+            f'''<div class="v-item">
+                <span class="v-badge" style="background:{risk_color}">{html.escape(v["level"])}</span>
+                <span class="v-code">{html.escape(v["code"])}</span>
+                <span class="v-msg">{html.escape(v["message"])}</span>
+            </div>'''
             for v in violations
         ]) or '<div class="v-item">无具体违规项</div>'
+        
+        # 生成模拟的周围车辆信息
+        nearby_vehicles = [
+            {"id": f"V{i}", "distance": round(random.uniform(5, 50), 1), 
+             "speed": round(random.uniform(0, 30), 1),
+             "relation": random.choice(["前车", "后车", "左车", "右车"]),
+             "risk": random.choice(["安全", "注意", "危险"])}
+            for i in range(min(vehicle_count, 5))
+        ]
+        vehicles_html = "".join([
+            f'''<div class="vehicle-item">
+                <span class="v-id">{v["id"]}</span>
+                <span class="v-rel">{v["relation"]}</span>
+                <span class="v-dist">{v["distance"]}m</span>
+                <span class="v-speed">{v["speed"]}m/s</span>
+                <span class="v-risk {'risk-'+v['risk']}">{v["risk"]}</span>
+            </div>'''
+            for v in nearby_vehicles
+        ]) or '<div class="vehicle-item">无周围车辆</div>'
+        
+        # 生成知识图谱节点
+        nodes = [
+            {"id": "ego", "label": "自车", "type": "ego", "x": 250, "y": 200},
+            {"id": "scenario", "label": scenario_name, "type": "scenario", "x": 450, "y": 120},
+            {"id": "risk", "label": risk_level, "type": "risk", "x": 450, "y": 200},
+            {"id": "speed", "label": f"{ego_speed:.1f}m/s", "type": "attr", "x": 80, "y": 120},
+            {"id": "position", "label": f"({ego_x:.1f},{ego_y:.1f})", "type": "attr", "x": 80, "y": 200},
+            {"id": "vehicles", "label": f"{vehicle_count}辆车", "type": "attr", "x": 80, "y": 280},
+        ]
+        
+        edges = [
+            {"from": "ego", "to": "scenario", "label": "触发"},
+            {"from": "ego", "to": "risk", "label": "风险等级"},
+            {"from": "ego", "to": "speed", "label": "速度"},
+            {"from": "ego", "to": "position", "label": "位置"},
+            {"from": "ego", "to": "vehicles", "label": "感知"},
+        ]
+        
+        nodes_html = ""
+        for n in nodes:
+            node_color = {
+                "ego": "#667eea",
+                "scenario": "#f39c12",
+                "risk": risk_color,
+                "attr": "#52c41a"
+            }.get(n["type"], "#999")
+            nodes_html += f'''
+            <div class="kg-node node-{n["type"]}" 
+                 style="left:{n["x"]}px;top:{n["y"]}px;background:{node_color};">
+                <div class="node-label">{n["label"]}</div>
+            </div>'''
+        
+        edges_html = ""
+        for e in edges:
+            edges_html += f'''
+            <div class="kg-edge" data-from="{e["from"]}" data-to="{e["to"]}">
+                <span class="edge-label">{e["label"]}</span>
+            </div>'''
         
         return f"""<!DOCTYPE html>
 <html lang="zh-CN">
@@ -238,89 +308,365 @@ class AnomalyDetector:
             background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
             min-height: 100vh;
             color: #e0e0e0;
+            padding: 20px;
+        }}
+        h1 {{
+            text-align: center;
+            font-size: 1.8em;
+            margin-bottom: 5px;
+            color: #667eea;
+            text-shadow: 0 0 20px rgba(102,126,234,0.5);
+        }}
+        .timestamp {{
+            text-align: center;
+            color: #888;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }}
+        
+        /* 三列布局 */
+        .container {{
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }}
+        
+        /* 通用卡片 */
+        .card {{
+            background: rgba(255,255,255,0.08);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }}
+        .card h2 {{
+            font-size: 1em;
+            color: #667eea;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 8px;
+        }}
+        
+        /* 知识图谱区域 */
+        .kg-container {{
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+            min-height: 350px;
+        }}
+        .kg-canvas {{
+            position: relative;
+            width: 100%;
+            height: 350px;
+        }}
+        .kg-node {{
+            position: absolute;
+            padding: 10px 15px;
+            border-radius: 20px;
+            color: white;
+            font-weight: bold;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+            cursor: pointer;
+            z-index: 10;
+        }}
+        .kg-node:hover {{
+            transform: translate(-50%, -50%) scale(1.1);
+            box-shadow: 0 6px 25px rgba(0,0,0,0.5);
+        }}
+        .node-ego {{
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9em;
+            box-shadow: {risk_glow};
+        }}
+        .node-scenario {{
+            border: 2px solid {risk_color};
+        }}
+        .node-risk {{
+            font-size: 0.9em;
+        }}
+        .node-attr {{
+            font-size: 0.8em;
+            padding: 8px 12px;
+            background: rgba(82,196,26,0.3);
+        }}
+        .kg-edge {{
+            position: absolute;
+            background: rgba(255,255,255,0.2);
+            height: 2px;
+            transform-origin: left center;
+            z-index: 5;
+        }}
+        .edge-label {{
+            position: absolute;
+            right: -40px;
+            top: -8px;
+            font-size: 0.7em;
+            color: #888;
+            background: rgba(0,0,0,0.5);
+            padding: 2px 5px;
+            border-radius: 3px;
+        }}
+        
+        /* 自车状态 */
+        .ego-status {{
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }}
+        .status-item {{
+            background: rgba(0,0,0,0.2);
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }}
+        .status-label {{
+            font-size: 0.75em;
+            color: #888;
+            margin-bottom: 5px;
+        }}
+        .status-value {{
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #667eea;
+        }}
+        .status-value.speed {{
+            color: #52c41a;
+        }}
+        .status-value.warning {{
+            color: #faad14;
+        }}
+        .status-value.danger {{
+            color: #ff4d4f;
+        }}
+        
+        /* 风险指标 */
+        .risk-display {{
+            text-align: center;
+            padding: 20px;
+        }}
+        .risk-circle {{
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: conic-gradient({risk_color} {risk_index*360}deg, rgba(255,255,255,0.1) 0deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            box-shadow: {risk_glow};
+        }}
+        .risk-inner {{
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.5);
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
-        }}
-        h1 {{ font-size: 1.5em; margin-bottom: 10px; color: #667eea; }}
-        .event-info {{
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-            padding: 15px 25px;
-            margin-bottom: 20px;
-            display: flex;
-            gap: 30px;
-            flex-wrap: wrap;
             justify-content: center;
         }}
-        .info-item {{ text-align: center; }}
-        .info-label {{ font-size: 0.8em; opacity: 0.7; }}
-        .info-value {{ font-size: 1.2em; font-weight: bold; }}
-        .risk-badge {{
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
+        .risk-value {{
+            font-size: 1.5em;
             font-weight: bold;
             color: white;
-            background: {risk_color};
         }}
-        .violation-box {{
-            background: rgba(255,255,255,0.05);
-            border-radius: 10px;
-            padding: 20px;
-            max-width: 500px;
-            width: 100%;
+        .risk-level {{
+            font-size: 0.8em;
+            color: {risk_color};
         }}
-        .v-item {{
+        
+        /* 周围车辆 */
+        .vehicle-item {{
+            display: flex;
+            align-items: center;
+            gap: 10px;
             padding: 8px;
+            margin: 5px 0;
+            background: rgba(0,0,0,0.2);
+            border-radius: 6px;
+            font-size: 0.9em;
+        }}
+        .v-id {{ color: #667eea; font-weight: bold; }}
+        .v-rel {{ color: #888; }}
+        .v-dist {{ color: #52c41a; }}
+        .v-speed {{ color: #f39c12; }}
+        .v-risk {{ padding: 2px 8px; border-radius: 10px; font-size: 0.8em; }}
+        .risk-安全 {{ background: rgba(82,196,26,0.3); color: #52c41a; }}
+        .risk-注意 {{ background: rgba(250,173,20,0.3); color: #faad14; }}
+        .risk-危险 {{ background: rgba(255,77,79,0.3); color: #ff4d4f; }}
+        
+        /* 违规行为 */
+        .v-item {{
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
             margin: 5px 0;
             background: rgba(0,0,0,0.2);
             border-radius: 6px;
         }}
         .v-badge {{
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 10px;
+            padding: 3px 10px;
+            border-radius: 12px;
             font-size: 0.8em;
             color: white;
-            margin-right: 8px;
+        }}
+        .v-code {{
+            color: #667eea;
+            font-family: monospace;
+        }}
+        .v-msg {{
+            color: #e0e0e0;
+        }}
+        
+        /* 关系图例 */
+        .legend {{
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 15px;
+            font-size: 0.8em;
+        }}
+        .legend-item {{
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }}
+        .legend-dot {{
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }}
+        
+        /* 响应式 */
+        @media (max-width: 1000px) {{
+            .container {{
+                grid-template-columns: 1fr;
+            }}
         }}
     </style>
 </head>
 <body>
-    <h1>事件知识图谱 #{scenario_id}</h1>
+    <h1>🚗 事件知识图谱 #{scenario_id}</h1>
+    <p class="timestamp">检测时间: {html.escape(timestamp)}</p>
     
-    <div class="event-info">
-        <div class="info-item">
-            <div class="info-label">场景类型</div>
-            <div class="info-value">{html.escape(scenario_name)}</div>
+    <div class="container">
+        <!-- 左侧：自车状态 -->
+        <div class="left-panel">
+            <div class="card">
+                <h2>🚘 自车状态</h2>
+                <div class="ego-status">
+                    <div class="status-item">
+                        <div class="status-label">速度</div>
+                        <div class="status-value {'speed' if ego_speed < 20 else 'warning' if ego_speed < 30 else 'danger'}">{ego_speed:.1f} m/s</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-label">风险指数</div>
+                        <div class="status-value {'danger' if risk_index > 0.7 else 'warning' if risk_index > 0.4 else ''}">{risk_index:.3f}</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-label">X坐标</div>
+                        <div class="status-value">{ego_x:.2f}</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-label">Y坐标</div>
+                        <div class="status-value">{ego_y:.2f}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>📊 周围环境</h2>
+                <div class="vehicle-item">
+                    <span class="v-id">车辆总数</span>
+                    <span class="v-dist">{vehicle_count} 辆</span>
+                </div>
+                {vehicles_html}
+            </div>
         </div>
-        <div class="info-item">
-            <div class="info-label">风险等级</div>
-            <div class="info-value"><span class="risk-badge">{html.escape(risk_level)}</span></div>
+        
+        <!-- 中间：知识图谱可视化 -->
+        <div class="center-panel">
+            <div class="kg-container">
+                <h2 style="text-align:center;margin-bottom:15px;color:#667eea;">🕸️ 知识图谱</h2>
+                <div class="kg-canvas">
+                    {nodes_html}
+                    {edges_html}
+                </div>
+                <div class="legend">
+                    <div class="legend-item"><div class="legend-dot" style="background:#667eea"></div>自车</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#f39c12"></div>场景</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:{risk_color}"></div>风险</div>
+                    <div class="legend-item"><div class="legend-dot" style="background:#52c41a"></div>属性</div>
+                </div>
+            </div>
         </div>
-        <div class="info-item">
-            <div class="info-label">风险指数</div>
-            <div class="info-value">{risk_index:.3f}</div>
-        </div>
-        <div class="info-item">
-            <div class="info-label">自车速度</div>
-            <div class="info-value">{ego_speed:.1f} m/s</div>
-        </div>
-        <div class="info-item">
-            <div class="info-label">周围车辆</div>
-            <div class="info-value">{vehicle_count} 辆</div>
-        </div>
-        <div class="info-item">
-            <div class="info-label">时间</div>
-            <div class="info-value" style="font-size:0.9em">{html.escape(timestamp)}</div>
+        
+        <!-- 右侧：风险与违规 -->
+        <div class="right-panel">
+            <div class="card">
+                <h2>⚠️ 风险评估</h2>
+                <div class="risk-display">
+                    <div class="risk-circle">
+                        <div class="risk-inner">
+                            <div class="risk-value">{risk_index:.1f}</div>
+                            <div class="risk-level">{html.escape(risk_level)}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>🚫 违规行为</h2>
+                {violation_html}
+            </div>
+            
+            <div class="card">
+                <h2>📋 场景分析</h2>
+                <p style="color:#888;font-size:0.9em;">
+                    当前场景 <strong style="color:#f39c12">{html.escape(scenario_name)}</strong>，
+                    自车以 <strong style="color:#52c41a">{ego_speed:.1f}m/s</strong> 的速度行驶，
+                    周围检测到 <strong>{vehicle_count}</strong> 个交通参与者。
+                    {'建议立即采取避险措施。' if risk_level == 'CRITICAL' else '建议保持警惕，注意观察。'}
+                </p>
+            </div>
         </div>
     </div>
     
-    <div class="violation-box">
-        <h3 style="margin-bottom:10px;color:#667eea;">检测到的违规行为</h3>
-        {violation_html}
-    </div>
+    <script>
+        // 简单的节点连接线
+        document.querySelectorAll('.kg-edge').forEach(edge => {{
+            const from = document.querySelector('.kg-node.node-' + edge.dataset.from);
+            const to = document.querySelector('.kg-node.node-' + edge.dataset.to);
+            if (from && to) {{
+                const fromRect = from.getBoundingClientRect();
+                const toRect = to.getBoundingClientRect();
+                const canvas = document.querySelector('.kg-canvas');
+                const canvasRect = canvas.getBoundingClientRect();
+                
+                const x1 = fromRect.left + fromRect.width/2 - canvasRect.left;
+                const y1 = fromRect.top + fromRect.height/2 - canvasRect.top;
+                const x2 = toRect.left + toRect.width/2 - canvasRect.left;
+                const y2 = toRect.top + toRect.height/2 - canvasRect.top;
+                
+                const length = Math.sqrt((x2-x1)**2 + (y2-y1)**2);
+                const angle = Math.atan2(y2-y1, x2-x1) * 180 / Math.PI;
+                
+                edge.style.width = length + 'px';
+                edge.style.left = x1 + 'px';
+                edge.style.top = y1 + 'px';
+                edge.style.transform = `rotate(${{angle}}deg)`;
+            }}
+        }});
+    </script>
 </body>
 </html>"""

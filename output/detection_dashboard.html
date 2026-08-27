@@ -293,6 +293,31 @@
             opacity: 0.6;
             color: #aaa;
         }
+
+        /* Toast 提示 */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            z-index: 9999;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s ease-out;
+            transition: opacity 0.3s;
+            max-width: 400px;
+        }
+        .toast-success { background: linear-gradient(135deg, #52c41a, #389e0d); }
+        .toast-error { background: linear-gradient(135deg, #ff4d4f, #cf1322); }
+        .toast-warning { background: linear-gradient(135deg, #faad14, #d48806); }
+        .toast-info { background: linear-gradient(135deg, #1890ff, #096dd9); }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -624,11 +649,23 @@
             }
         }
 
+        // 显示提示消息
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
         // 启动持续检测任务
         async function startManualDetection() {
-            const btn = event.target;
+            const btn = document.querySelector('.btn-secondary');
             if (detectionActive) {
-                alert('检测已在运行中');
+                showToast('检测已在运行中', 'warning');
                 return;
             }
             try {
@@ -639,11 +676,7 @@
                 // 调用后端启动持续检测
                 const resp = await fetch(`${API_BASE}/detect/start`, {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        interval: 1.0,
-                        use_carla: true
-                    })
+                    headers: {'Content-Type': 'application/json'}
                 });
                 const result = await resp.json();
                 if (result.success) {
@@ -653,14 +686,15 @@
                     // 清空旧数据
                     seenEventIds.clear();
                     document.getElementById('latestEventId').textContent = '--';
+                    showToast('✅ ' + (result.message || '检测已启动'), 'success');
                 } else {
-                    alert('启动失败: ' + (result.message || '未知错误'));
+                    showToast('❌ 启动失败: ' + (result.message || '未知错误'), 'error');
                     btn.disabled = false;
                     btn.textContent = '▶ 启动实时检测';
                     btn.classList.remove('btn-active');
                 }
             } catch (e) {
-                alert('请求失败: ' + e.message);
+                showToast('❌ 网络错误: ' + e.message, 'error');
                 btn.disabled = false;
                 btn.textContent = '▶ 启动实时检测';
                 btn.classList.remove('btn-active');
@@ -682,9 +716,12 @@
                         btn.style.background = '';
                         btn.classList.remove('btn-active');
                     }
+                    showToast('⏹ ' + (result.message || '检测已停止'), 'info');
+                } else {
+                    showToast('❌ 停止失败: ' + (result.message || '未知错误'), 'error');
                 }
             } catch (e) {
-                alert('停止失败: ' + e.message);
+                showToast('❌ 网络错误: ' + e.message, 'error');
             }
         }
 
