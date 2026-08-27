@@ -6,8 +6,9 @@
 - [一、环境要求](#一环境要求)
 - [二、安装部署](#二安装部署)
 - [三、使用指南](#三使用指南)
-- [四、API 接口文档](#四api-接口文档)
-- [五、常见问题](#五常见问题)
+- [四、RSS规则详解](#四rss规则详解)
+- [五、API 接口文档](#五api-接口文档)
+- [六、常见问题](#六常见问题)
 
 ---
 
@@ -173,21 +174,183 @@ Per-event 知识图谱采用三列布局：
 
 ---
 
-## 四、API 接口文档
+## 四、RSS规则详解
 
-### 4.1 健康检查
+### 4.1 RSS 概述
+
+**RSS (Responsibility-Sensitive Safety)** 是 Mobileye 于2017年提出的自动驾驶安全框架，
+通过数学公式明确定义"安全驾驶"的行为边界。
+
+**核心思想**：
+- 定义明确的安全距离
+- 判断"危险情形"而非仅"碰撞"
+- 要求"Proper Response"（反应得当）
+- 检测"Continuous Violation"（连续违规）
+
+### 4.2 规则分类总览
+
+| 类别 | 规则数 | 文件 | 参考文献 |
+|------|--------|------|---------|
+| 纵向安全 | 8 条 | `longitudinal.py` | Shalev-Shwartz 2017 §3.1 |
+| 横向安全 | 7 条 | `lateral.py` | Shalev-Shwartz 2017 §3.2 |
+| 交叉口 | 8 条 | `intersection.py` | Lin et al. 2024 |
+| 行人保护 | 5 条 | `pedestrian.py` | Candela et al. 2022 |
+| 风险指数 | 5 条 | `risk_index.py` | Candela et al. 2022 |
+| **总计** | **33 条** | | |
+
+### 4.3 纵向安全规则（Longitudinal）
+
+**代码位置**: `ads_safety_platform/kg_core/rules/rss/longitudinal.py`
+
+#### 核心公式
+
+**最小安全距离**：
+```
+d_min_long = v_ego * rho + 0.5 * a_brake * rho² + (v_ego² - v_front²) / (2 * a_min_brake)
+```
+
+**核心参数**：
+| 参数 | 值 | 说明 |
+|------|-----|------|
+| `rho` | 0.5s | 反应时间 |
+| `a_max_accel` | 2.0 m/s² | 后车最大加速 |
+| `a_min_brake` | 4.0 m/s² | 后车最小制动 |
+| `a_brake` | 8.0 m/s² | 前车最大制动 |
+
+#### 8条规则详解
+
+| 规则 | 函数 | 说明 |
+|------|------|------|
+| L1 | `check_safe_distance()` | 检查实际距离是否大于 d_min |
+| L2 | `check_proper_response()` | 验证后车是否适当制动 |
+| L3 | `check_dangerous_situation()` | 判断是否为危险情形 |
+| L4 | `check_continuous_violation()` | 检测连续违规 |
+| L5 | `compute_brake_distance()` | 计算紧急制动距离 |
+| L6 | `compute_comfort_brake_distance()` | 计算舒适制动距离 |
+| L7 | `前车急刹检测` | Δv > 阈值时触发 |
+| L8 | `跟车过近检测` | ttc < 阈值时触发 |
+
+### 4.4 横向安全规则（Lateral）
+
+**代码位置**: `ads_safety_platform/kg_core/rules/rss/lateral.py`
+
+#### 核心公式
+
+**横向最小安全距离**：
+```
+d_min_lat = 2 * v_lat * rho + a_min_lat_brake * rho²
+```
+
+**安全变道条件**：
+```
+d_lat >= d_min_lat AND ttc >= rho
+```
+
+#### 7条规则详解
+
+| 规则 | 函数 | 说明 |
+|------|------|------|
+| LA1 | `check_safe_lateral_distance()` | 检查横向安全距离 |
+| LA2 | `check_proper_lateral_response()` | 验证横向反应得当 |
+| LA3 | `check_lane_change_safety()` | 验证变道安全 |
+| LA4 | `compute_rss_safe_lane_change_zone()` | 计算安全变道区域 |
+| LA5 | `违规变道检测` | 违规越过车道线 |
+| LA6 | `compute_lateral_collision_time()` | 计算横向TTC |
+| LA7 | `车道线感知` | 检测车道偏离 |
+
+### 4.5 交叉口规则（Intersection）
+
+**代码位置**: `ads_safety_platform/kg_core/rules/rss/intersection.py`
+
+**支持的路口类型**：
+- MERGE（并道）
+- INTERSECTION（十字路口）
+- T_JUNCTION（T型路口）
+- ROUNDABOUT（环岛）
+- LANE_CHANGE（变道）
+
+**先行权规则**：
+- RIGHT_BEFORE_LEFT（右侧优先）
+- FIRST_COME_FIRST_SERVED（先到先行）
+- SIGNAL_CONTROLLED（信号灯控制）
+
+#### 8条规则详解
+
+| 规则 | 函数 | 说明 |
+|------|------|------|
+| I1 | `check_merge_priority()` | 检查合并优先权 |
+| I2 | `check_intersection_priority()` | 检查路口优先权 |
+| I3 | `check_right_of_way_by_position()` | 按位置判断先行权 |
+| I4 | `check_merge_safe_distance()` | 检查合并安全距离 |
+| I5 | `RCPPPlanner` | 合规路径规划器 |
+| I6 | `红灯闯行检测` | 红灯时通行 |
+| I7 | `T型路口规则` | T型路口通行规则 |
+| I8 | `环岛规则` | 环岛通行规则 |
+
+### 4.6 行人保护规则（Pedestrian）
+
+**代码位置**: `ads_safety_platform/kg_core/rules/rss/pedestrian.py`
+
+#### 核心参数
+
+| 参数 | 值 | 说明 |
+|------|-----|------|
+| `d_min_pedestrian_crossing` | 5.0m | 横穿最小距离 |
+| `d_min_pedestrian_nearby` | 3.0m | 附近最小距离 |
+| `d_min_yield_zone` | 5.0m | 礼让区距离 |
+| `rho` | 0.5s | 反应时间 |
+
+#### 5条规则详解
+
+| 规则 | 函数 | 说明 |
+|------|------|------|
+| P1 | `check_pedestrian_crossing()` | 行人横穿道路 |
+| P2 | `check_pedestrian_proximity()` | 行人在附近 |
+| P3 | `check_yield_to_pedestrian()` | 礼让行人 |
+| P4 | `check_approaching_pedestrian()` | 接近行人 |
+| P5 | `compute_pedestrian_risk_index()` | 计算行人风险指数 |
+
+### 4.7 风险指数规则（Risk Index）
+
+**代码位置**: `ads_safety_platform/kg_core/rules/rss/risk_index.py`
+
+#### 风险等级
+
+| 等级 | 范围 | 颜色 | 说明 |
+|------|------|------|------|
+| SAFE | 0 | 🟢 | 完全安全 |
+| LOW | 0-0.2 | 🟢 | 低风险 |
+| MEDIUM | 0.2-0.4 | 🟡 | 中风险 |
+| HIGH | 0.4-0.7 | 🟠 | 高风险 |
+| CRITICAL | 0.7-1.0 | 🔴 | 危急 |
+
+#### 5条规则详解
+
+| 规则 | 函数 | 说明 |
+|------|------|------|
+| R1 | `compute_risk_index()` | 计算基础风险指数 |
+| R2 | `compute_risk_index_comprehensive()` | 综合风险评估 |
+| R3 | `驾驶偏好风险` | 个性化风险评估 |
+| R4 | `generate_risk_report()` | 生成风险报告 |
+| R5 | `实时风险监控` | 持续监测风险 |
+
+---
+
+## 五、API 接口文档
+
+### 5.1 健康检查
 ```bash
 GET /api/health
 
 # 响应
 {
   "status": "healthy",
-  "carla_connected": true/false,
+  "carla_connected": true,
   "timestamp": "2026-08-27T10:00:00.000000"
 }
 ```
 
-### 4.2 启动持续检测
+### 5.2 启动持续检测
 ```bash
 POST /api/detect/start
 
@@ -199,7 +362,7 @@ POST /api/detect/start
 }
 ```
 
-### 4.3 停止检测
+### 5.3 停止检测
 ```bash
 POST /api/detect/stop
 
@@ -210,7 +373,7 @@ POST /api/detect/stop
 }
 ```
 
-### 4.4 定时检测
+### 5.4 定时检测
 ```bash
 POST /api/detect/run
 Content-Type: application/json
@@ -229,7 +392,7 @@ Content-Type: application/json
 }
 ```
 
-### 4.5 获取历史记录
+### 5.5 获取历史记录
 ```bash
 GET /api/detect/history?limit=10
 
@@ -260,20 +423,22 @@ GET /api/detect/history?limit=10
 }
 ```
 
-### 4.6 WebSocket 实时推送
+### 5.6 WebSocket 实时推送
 ```javascript
 const ws = new WebSocket('ws://localhost:8000/api/ws/detection');
 ws.onmessage = (event) => {
   const data = JSON.parse(event.data);
   if (data.type === 'anomaly') {
     console.log('异常事件:', data.data);
+    // 自动刷新页面显示新事件
+    handleDetectionEvent(data);
   }
 };
 ```
 
 ---
 
-## 五、常见问题
+## 六、常见问题
 
 ### Q1: 仪表盘显示"CARLA: 离线"
 **原因**: CARLA UE4 服务未启动，或端口被占用
@@ -292,7 +457,6 @@ cd Carla0915
 **解决**:
 - 等待 30 秒以上
 - 连续触发多个检测周期
-- 或调整检测器的 `random.random() < 0.15` 阈值
 
 ### Q3: WebSocket 连接失败
 **原因**: uvicorn 默认不支持 WebSocket
@@ -308,15 +472,21 @@ pip install websockets
 - 确认已产生至少一个异常事件
 - 检查 `/home/aisecurity/01_ZHB/output/kg_event_*.html` 文件
 
-### Q5: CARLA Python API 连接 SegFault
+### Q5: 页面没有自动刷新
+**原因**: WebSocket 事件类型不匹配
+**解决**:
+- 已修复：前端兼容 `anomaly` 和 `detection` 两种事件类型
+- 刷新页面重新连接
+
+### Q6: CARLA Python API 连接 SegFault
 **原因**: CARLA 版本与 Python API 版本不匹配
-**解决**: 使用 TCP Socket 方式进行连接检查，系统会自动使用模拟数据
+**解决**: 系统会自动使用 TCP Socket 方式连接，忽略 Python API
 
 ---
 
-## 六、最佳实践
+## 七、最佳实践
 
-### 6.1 演示流程
+### 7.1 演示流程
 1. 启动 CARLA
 2. 启动后端
 3. 打开仪表盘
@@ -325,17 +495,18 @@ pip install websockets
 6. 看到事件后点击 "查看图谱"
 7. 展示完整的 Per-event 知识图谱
 
-### 6.2 报告展示要点
+### 7.2 报告展示要点
 - **技术架构图**：前后端分离 + CARLA 集成
+- **RSS规则**：33条规则分类表格
 - **核心功能**：实时检测 + 知识图谱 + Web可视化
 - **运行效果**：3 列表格布局的知识图谱（自车、场景、风险）
 - **项目亮点**：Per-event 图谱、WebSocket 推送、多模式检测
 
 ---
 
-## 七、更新日志
+## 八、更新日志
 
 | 版本 | 日期 | 更新内容 |
 |------|------|---------|
-| v2.0.0 | 2026-08-27 | 完善知识图谱、添加 Toast 提示 |
+| v2.0.0 | 2026-08-27 | 完善知识图谱、添加Toast提示、33条RSS规则文档 |
 | v1.0.0 | 2026-08-20 | 基础异常检测功能 |
