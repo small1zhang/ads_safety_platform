@@ -447,9 +447,10 @@
 
         // ===== 事件处理 =====
         function handleDetectionEvent(msg) {
-            if (msg.type !== 'detection') return;
-            const data = msg.data;
-            if (!data || seenEventIds.has(data.scenario_id)) return;
+            // 兼容两种事件类型: 'anomaly' 和 'detection'
+            const data = msg.data || msg;
+            if (!data || !data.scenario_id) return;
+            if (seenEventIds.has(data.scenario_id)) return;
             seenEventIds.add(data.scenario_id);
 
             // 1. 顶部插入新卡片

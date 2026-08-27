@@ -36,7 +36,23 @@ class DetectRequest(BaseModel):
 
 @app.get("/api/health")
 async def health():
-    return {"status": "healthy", "carla_connected": False, "timestamp": datetime.now().isoformat()}
+    # 实际检测CARLA连接状态
+    carla_status = False
+    try:
+        import socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(2.0)
+        result = sock.connect_ex(('localhost', 2000))
+        sock.close()
+        carla_status = (result == 0)
+    except:
+        carla_status = False
+    
+    return {
+        "status": "healthy",
+        "carla_connected": carla_status,
+        "timestamp": datetime.now().isoformat()
+    }
 
 @app.get("/api/detect/history")
 async def detect_history(limit: int = 50):
