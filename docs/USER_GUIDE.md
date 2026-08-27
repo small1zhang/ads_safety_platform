@@ -1,539 +1,341 @@
-# 📖 ADS Safety Platform - 系统使用文档
+# 📖 ADS Safety Platform - 使用说明文档
 
 > 本文档详细介绍 ADS Safety Platform 系统的安装、配置、使用方法和常见问题解决方案。
 
 ## 📑 目录
-
-- [一、系统要求](#一系统要求)
-- [二、安装指南](#二安装指南)
-- [三、配置说明](#三配置说明)
-- [四、使用指南](#四使用指南)
-- [五、检测脚本说明](#五检测脚本说明)
-- [六、API 接口使用](#六api-接口使用)
-- [七、常见问题](#七常见问题)
-- [八、故障排除](#八故障排除)
+- [一、环境要求](#一环境要求)
+- [二、安装部署](#二安装部署)
+- [三、使用指南](#三使用指南)
+- [四、API 接口文档](#四api-接口文档)
+- [五、常见问题](#五常见问题)
 
 ---
 
-## 一、系统要求
+## 一、环境要求
 
-### 硬件要求
+### 1.1 硬件要求
+- **CPU**: 4核以上
+- **内存**: 8GB 以上
+- **GPU**: 推荐 NVIDIA 显卡（CARLA 仿真需要）
+- **硬盘**: 20GB 可用空间
 
-| 组件 | 最低配置 | 推荐配置 |
-|------|---------|---------|
-| CPU | 4 核 | 8 核及以上 |
-| 内存 | 8GB | 16GB |
-| GPU | 不必需 | NVIDIA GTX 1060+ |
-| 硬盘 | 20GB | 50GB |
-
-### 软件要求
-
-- **操作系统**: Linux (Ubuntu 20.04+) / macOS / Windows 10+ (WSL2)
-- **Python**: 3.8+
-- **Node.js**: 16+ (前端)
-- **CARLA**: 0.9.13+
-- **Docker**: 20.10+ (可选)
-
-### 网络要求
-
-- CARLA 仿真器默认端口: `2000` (TCP) + `2001` (UE4)
-- 后端服务: `8000` (HTTP)
-- 前端服务: `5173` (HTTP)
+### 1.2 软件要求
+- **操作系统**: Linux Ubuntu 20.04+ (推荐) / Windows 10+
+- **Python**: 3.12+
+- **CARLA**: 0.9.15
+- **浏览器**: Chrome / Edge / Firefox 最新版
 
 ---
 
-## 二、安装指南
+## 二、安装部署
 
-### 方式一：本地安装（推荐开发使用）
-
-#### 1. 克隆项目
+### 2.1 启动 CARLA 仿真器
 
 ```bash
-git clone https://github.com/small1zhang/ads_safety_platform.git
-cd 01_ZHB
+# 进入 CARLA 目录
+cd ~/Carla0915
+
+# 后台启动 CARLA（无渲染模式）
+nohup ./CarlaUE4.sh -RenderOffScreen -carla-host=0.0.0.0 -carla-port=2000 > /tmp/carla.log 2>&1 &
+
+# 验证 CARLA 启动成功
+netstat -tlnp | grep 2000
 ```
 
-#### 2. 安装 Python 依赖
+### 2.2 启动后端服务
 
 ```bash
-# 创建虚拟环境
-python3 -m venv venv
-source venv/bin/activate  # Linux/macOS
-# venv\Scripts\activate   # Windows
-
-# 安装依赖
-pip install -r backend/requirements.txt
-```
-
-#### 3. 安装 CARLA Python API
-
-```bash
-# 方式 1: pip 安装
-pip install carla==0.9.13
-
-# 方式 2: 从 CARLA 解压目录安装
-cd ~/CARLA_0.9.13/PythonAPI/carla/dist
-pip install carla-0.9.13-*.whl
-```
-
-#### 4. 安装前端依赖
-
-```bash
-cd frontend
-npm install
-```
-
-#### 5. 启动 CARLA 仿真器
-
-```bash
-# 单独启动
-cd ~/CARLA_0.9.13
-./CarlaUE4.sh -windowed -ResX=1280 -ResY=720
-
-# 启动并加载地图
-./CarlaUE4.sh /Game/Carla/Maps/Town03 -windowed
-```
-
-### 方式二：Docker 部署（推荐生产使用）
-
-```bash
-# 一键启动
-docker-compose up -d
-
-# 查看日志
-docker-compose logs -f
-
-# 停止服务
-docker-compose down
-```
-
----
-
-## 三、配置说明
-
-### 环境变量
-
-#### 后端配置 (`backend/.env`)
-
-```bash
-# CARLA 连接配置
-CARLA_HOST=localhost
-CARLA_PORT=2000
-CARLA_TIMEOUT=10.0
-
-# 数据库配置
-DATABASE_URL=sqlite:///./data/safety.db
-# 可选: postgresql://user:password@localhost:5432/safety_db
-
-# 检测配置
-DETECTION_INTERVAL=1.0     # 检测间隔 (秒)
-RISK_THRESHOLD=0.5         # 风险阈值
-ALERT_COOLDOWN=3.0         # 告警冷却时间 (秒)
-
-# 输出配置
-OUTPUT_DIR=./output
-
-# 开发模式
-DEBUG=true
-LOG_LEVEL=INFO
-```
-
-#### 前端配置 (`frontend/.env`)
-
-```bash
-# API 地址
-VITE_API_URL=http://localhost:8000
-
-# WebSocket 地址
-VITE_WS_URL=ws://localhost:8000/api/ws
-```
-
-### RSS 规则参数
-
-可以在代码中调整 RSS 参数：
-
-```python
-# longitudinal.py
-@dataclass
-class RSSLongitudinalParams:
-    rho: float = 0.5              # 反应时间 (s)
-    a_max_accel: float = 2.0      # 后车最大加速 (m/s²)
-    a_min_brake: float = 4.0      # 后车最小制动 (m/s²)
-    a_brake: float = 8.0          # 前车最大制动 (m/s²)
-
-# lateral.py
-@dataclass
-class RSSLateralParams:
-    rho: float = 0.5              # 反应时间 (s)
-    a_max_lat: float = 3.0        # 最大横向加速度 (m/s²)
-    a_min_lat_brake: float = 5.0  # 最小横向制动减速度 (m/s²)
-    vehicle_width: float = 2.0    # 标准车宽 (m)
-    lane_width: float = 3.7       # 车道宽度 (m)
-```
-
----
-
-## 四、使用指南
-
-### 4.1 启动顺序
-
-**重要：请按顺序启动**
-
-1. **启动 CARLA 仿真器**（必须先启动）
-2. **运行检测脚本**（会自动连接 CARLA）
-3. **可选：启动前端界面**
-
-### 4.2 快速开始（5分钟体验）
-
-#### 步骤 1: 启动 CARLA
-
-```bash
-# 终端 1
-cd ~/CARLA_0.9.13
-./CarlaUE4.sh -windowed
-```
-
-#### 步骤 2: 运行实时检测
-
-```bash
-# 终端 2
+# 进入项目目录
 cd /home/aisecurity/01_ZHB
-python3 run_realtime_alert.py
-```
 
-#### 步骤 3: 观察输出
-
-终端会显示：
-- 🚗 车辆位置和速度信息
-- 📊 实时风险评估
-- ⚠️ 违规预警信息
-- 🔴 车辆颜色变化
-
-#### 步骤 4: 停止检测
-
-按 `Ctrl+C` 停止。系统会保存检测报告到 `output_realtime_alert/` 目录。
-
-### 4.3 启动前端界面（可选）
-
-```bash
-# 终端 3
+# 激活 Python 虚拟环境
 cd backend
-python -m app.main
+source venv/bin/activate
 
-# 终端 4
-cd frontend
-npm run dev
+# 安装依赖（如未安装）
+pip install -i https://mirrors.aliyun.com/pypi/simple/ \
+    --trusted-host mirrors.aliyun.com \
+    fastapi uvicorn pydantic pydantic-settings websockets
+
+# 启动后端服务
+python -c "
+import uvicorn
+import sys
+sys.path.insert(0, '.')
+from app.main import app
+uvicorn.run(app, host='0.0.0.0', port=8000, log_level='info')
+"
 ```
 
-浏览器打开 `http://localhost:5173` 访问。
+成功启动后会看到：
+```
+INFO:     Started server process [xxxx]
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000
+```
+
+### 2.3 访问仪表盘
+
+打开浏览器访问：**http://localhost:8000/dashboard**
+
+或通过网络访问：**http://服务器IP:8000/dashboard**
 
 ---
 
-## 五、检测脚本说明
+## 三、使用指南
 
-本项目提供多个检测脚本，根据不同需求选择：
+### 3.1 仪表盘界面说明
 
-### 5.1 `run_realtime_alert.py` - 实时预警检测（推荐）
+```
+┌─────────────────────────────────────────────────────────┐
+│  🚗 ADS Safety Platform - 实时检测仪表盘                  │
+├─────────────────────────────────────────────────────────┤
+│  [CARLA: 在线] [WebSocket: 已连接] [事件ID: #5]         │
+├─────────────────────────────────────────────────────────┤
+│  [危急: 2] [高危: 3] [中危: 0] [低危: 0] [总数: 5]     │
+├─────────────────────────────────────────────────────────┤
+│  [▶ 10秒] [▶ 30秒] [▶ 60秒] [▶ 启动实时] [⏹ 停止] [📊全局]│
+├─────────────────────────────────────────────────────────┤
+│  📋 最近检测结果                                          │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐     │
+│  │ 事件卡片      │ │ 事件卡片      │ │ 事件卡片      │     │
+│  │ [查看图谱]    │ │ [查看图谱]    │ │ [查看图谱]    │     │
+│  └──────────────┘ └──────────────┘ └──────────────┘     │
+├─────────────────────────────────────────────────────────┤
+│  📜 检测事件时间线                                        │
+└─────────────────────────────────────────────────────────┘
+```
 
-**功能**：连接 CARLA，对所有车辆进行实时 RSS 规则检测，触发终端预警和车辆颜色变化。
+### 3.2 启动检测
+
+#### 方式一：页面按钮
+1. 打开 `http://localhost:8000/dashboard`
+2. 点击 **"▶ 启动实时检测"** 按钮
+3. 等待提示 **"✅ 检测已启动"**
+4. 按钮变为 **"✓ 检测运行中"**（绿色）
+
+#### 方式二：API 调用
 
 ```bash
-python3 run_realtime_alert.py
-```
+# 启动持续检测
+curl -X POST http://localhost:8000/api/detect/start
 
-**特点**：
-- ✅ 实时检测（每秒1次）
-- ✅ 终端颜色预警（红/黄/绿）
-- ✅ CARLA 车辆颜色变化
-- ✅ 违规原因详细输出
-- ✅ 30分钟检测时长
-- ✅ 输出 JSON 报告
-
-**输出示例**：
-```
-🚗 检测循环 #42
-  车辆 0: pos=(10.5, 20.3) speed=15.0 m/s
-  车辆 1: pos=(12.0, 22.1) speed=12.0 m/s
-  ⚠️ 与车辆横向距离 0.5m 低于安全距离
-  🚨 风险等级: MEDIUM
-
-📊 统计: 违规 29/600 (4.8%)
-```
-
-### 5.2 `run_real_carla_detection.py` - 真实 CARLA 检测
-
-**功能**：使用 CARLA 仿真器中现有的车辆进行 RSS 检测。
-
-```bash
-python3 run_real_carla_detection.py
-```
-
-**特点**：
-- ✅ 使用 CARLA 自动驾驶模式
-- ✅ 包含 Traffic Manager
-- ✅ 30分钟长时间检测
-- ✅ 真实车辆动力学
-
-### 5.3 `run_anomaly_simple.py` - 简化异常检测
-
-**功能**：注入异常场景并检测（适合测试和验证）。
-
-```bash
-python3 run_anomaly_simple.py
-```
-
-**注入的异常类型**：
-- `sudden_brake`: 急刹车
-- `tailgating`: 尾随过近
-- `close_call`: 横向近距离
-- `rapid_approach`: 快速接近
-
-**特点**：
-- ✅ 自动注入异常（每 5-8 秒 40% 概率）
-- ✅ 验证 RSS 规则有效性
-- ✅ 测试结果可视化
-
-### 5.4 `run_anomaly_injection_detection.py` - 高级异常注入
-
-**功能**：完整的异常场景注入与检测。
-
-```bash
-python3 run_anomaly_injection_detection.py
-```
-
-**特点**：
-- ✅ 6 种异常场景（急刹、变道、交叉口冲突、尾随、超速、行人横穿）
-- ✅ 可配置异常频率
-- ✅ 详细违规原因分析
-
----
-
-## 六、API 接口使用
-
-### 6.1 健康检查
-
-```bash
-curl http://localhost:8000/api/health
-```
-
-**响应**：
-```json
-{
-  "status": "healthy",
-  "service": "ADS Safety Platform",
-  "version": "2.0.0"
-}
-```
-
-### 6.2 触发检测
-
-```bash
+# 启动 30 秒检测
 curl -X POST http://localhost:8000/api/detect/run \
   -H "Content-Type: application/json" \
-  -d '{
-    "scenario_id": 1,
-    "duration": 60
-  }'
+  -d '{"duration": 30, "interval": 1.0}'
+
+# 启动 60 秒检测
+curl -X POST http://localhost:8000/api/detect/run \
+  -H "Content-Type: application/json" \
+  -d '{"duration": 60, "interval": 1.0}'
 ```
 
-**响应**：
-```json
+### 3.3 停止检测
+
+1. 在仪表盘上点击 **"⏹ 停止检测"** 按钮
+2. 等待提示 **"⏹ 检测已停止"**
+3. 按钮恢复为 **"▶ 启动实时检测"** 状态
+
+或通过 API：
+```bash
+curl -X POST http://localhost:8000/api/detect/stop
+```
+
+### 3.4 查看知识图谱
+
+#### 方式一：点击事件卡片
+1. 在事件卡片上点击 **"📊 查看该事件图谱"** 按钮
+2. 新窗口打开 Per-event 知识图谱
+3. 图谱包含：自车状态、周围环境、违规行为、关系网络
+
+#### 方式二：直接访问 URL
+```
+http://localhost:8000/output/kg_event_1.html
+http://localhost:8000/output/kg_event_2.html
+...
+```
+
+#### 方式三：查看全局图谱
+```
+http://localhost:8000/output/knowledge_graph.html
+```
+
+### 3.5 知识图谱说明
+
+Per-event 知识图谱采用三列布局：
+
+| 位置 | 内容 |
+|------|------|
+| **左栏** | 自车状态：速度、位置、风险指数；周围环境：车辆数、距离、风险等级 |
+| **中栏** | 知识图谱可视化：自车节点、场景节点、风险节点、属性节点 + 关系连线 |
+| **右栏** | 风险评估：圆形进度图；违规行为：列表展示；场景分析：建议文本 |
+
+---
+
+## 四、API 接口文档
+
+### 4.1 健康检查
+```bash
+GET /api/health
+
+# 响应
 {
-  "status": "started",
-  "task_id": "task-123",
-  "scenario": "前车急刹"
+  "status": "healthy",
+  "carla_connected": true/false,
+  "timestamp": "2026-08-27T10:00:00.000000"
 }
 ```
 
-### 6.3 获取历史检测
-
+### 4.2 启动持续检测
 ```bash
-curl http://localhost:8000/api/detect/history?limit=10
+POST /api/detect/start
+
+# 响应
+{
+  "success": true,
+  "message": "持续实时检测已启动",
+  "status": "running"
+}
 ```
 
-**响应**：
-```json
-[
-  {
-    "scenario_id": 1,
-    "scenario_name": "前车急刹",
-    "timestamp": "2026-08-26T10:00:00",
-    "ego_speed": 15.0,
-    "violations": [...],
-    "risk_level": "MEDIUM"
+### 4.3 停止检测
+```bash
+POST /api/detect/stop
+
+# 响应
+{
+  "success": true,
+  "message": "检测已停止"
+}
+```
+
+### 4.4 定时检测
+```bash
+POST /api/detect/run
+Content-Type: application/json
+
+{
+  "duration": 30,        # 检测时长（秒）
+  "interval": 1.0,       # 采样间隔（秒）
+  "inject_anomalies": true
+}
+
+# 响应
+{
+  "success": true,
+  "message": "已启动30.0 秒的异常检测",
+  "status": "running"
+}
+```
+
+### 4.5 获取历史记录
+```bash
+GET /api/detect/history?limit=10
+
+# 响应
+{
+  "history": [
+    {
+      "scenario_id": 1,
+      "scenario_name": "前车急刹",
+      "timestamp": "2026-08-27T10:00:00",
+      "ego_x": 23.5,
+      "ego_y": -12.3,
+      "ego_speed": 25.6,
+      "vehicle_count": 5,
+      "violations": [...],
+      "risk_index": 0.85,
+      "risk_level": "CRITICAL",
+      "kg_path": "/output/kg_event_1.html"
+    }
+  ],
+  "stats": {
+    "total": 10,
+    "critical": 3,
+    "high": 4,
+    "medium": 2,
+    "low": 1
   }
-]
+}
 ```
 
-### 6.4 WebSocket 实时推送
-
+### 4.6 WebSocket 实时推送
 ```javascript
 const ws = new WebSocket('ws://localhost:8000/api/ws/detection');
 ws.onmessage = (event) => {
   const data = JSON.parse(event.data);
-  console.log('检测结果:', data);
+  if (data.type === 'anomaly') {
+    console.log('异常事件:', data.data);
+  }
 };
 ```
 
 ---
 
-## 七、常见问题
+## 五、常见问题
 
-### Q1: CARLA 连接失败
+### Q1: 仪表盘显示"CARLA: 离线"
+**原因**: CARLA UE4 服务未启动，或端口被占用
+**解决**:
+```bash
+# 检查 CARLA 进程
+ps aux | grep CarlaUE4
 
-**问题**：`RuntimeError: connection to localhost:2000 failed`
+# 启动 CARLA
+cd Carla0915
+./CarlaUE4.sh -RenderOffScreen
+```
 
-**解决方案**：
-1. 确认 CARLA 仿真器已启动
-2. 检查端口 `2000` 是否被占用：`netstat -an | grep 2000`
-3. 检查防火墙设置
-4. 重启 CARLA 仿真器
+### Q2: 检测启动后没有事件
+**原因**: 检测器使用约 15% 概率产生事件，事件间隔较长
+**解决**:
+- 等待 30 秒以上
+- 连续触发多个检测周期
+- 或调整检测器的 `random.random() < 0.15` 阈值
 
-### Q2: 没有任何违规检出
+### Q3: WebSocket 连接失败
+**原因**: uvicorn 默认不支持 WebSocket
+**解决**:
+```bash
+pip install websockets
+# 重启后端
+```
 
-**问题**：运行 10 分钟，违规数为 0
+### Q4: 知识图谱无法打开
+**原因**: 图谱文件未生成
+**解决**:
+- 确认已产生至少一个异常事件
+- 检查 `/home/aisecurity/01_ZHB/output/kg_event_*.html` 文件
 
-**解决方案**：
-1. 确认 CARLA 中有多个车辆（至少 2-3 辆）
-2. 使用 `run_anomaly_simple.py` 注入异常场景
-3. 检查 NPC 车辆位置是否与 ego 车辆足够接近
-4. 调整 RSS 参数阈值
-
-### Q3: 检测速度太慢
-
-**问题**：检测一帧需要超过 1 秒
-
-**解决方案**：
-1. 减少 CARLA 中的车辆数量
-2. 降低检测频率（修改 `DETECTION_INTERVAL`）
-3. 使用更简单的异常注入模式
-
-### Q4: 终端颜色不显示
-
-**问题**：终端输出没有颜色
-
-**解决方案**：
-- 终端需要支持 ANSI 颜色（大多数现代终端支持）
-- Linux/macOS: 使用默认终端即可
-- Windows: 使用 Windows Terminal 或 WSL2
-
-### Q5: 大量误报
-
-**问题**：检出大量非真实违规
-
-**解决方案**：
-1. 调整 RSS 参数（增加 `rho` 反应时间）
-2. 提高 `RISK_THRESHOLD` 阈值
-3. 检查车辆位置数据是否准确
+### Q5: CARLA Python API 连接 SegFault
+**原因**: CARLA 版本与 Python API 版本不匹配
+**解决**: 使用 TCP Socket 方式进行连接检查，系统会自动使用模拟数据
 
 ---
 
-## 八、故障排除
+## 六、最佳实践
 
-### 8.1 错误代码对照表
+### 6.1 演示流程
+1. 启动 CARLA
+2. 启动后端
+3. 打开仪表盘
+4. 点击 "启动实时检测"
+5. 等待 30-60 秒
+6. 看到事件后点击 "查看图谱"
+7. 展示完整的 Per-event 知识图谱
 
-| 错误代码 | 含义 | 解决方案 |
-|---------|------|---------|
-| `CONN_REFUSED` | CARLA 未启动 | 启动 CARLA 仿真器 |
-| `TIMEOUT` | 连接超时 | 检查网络和防火墙 |
-| `VEHICLE_NONE` | 场景中无车辆 | 生成 NPC 车辆 |
-| `INVALID_STATE` | 无效车辆状态 | 重启 CARLA |
-| `PORT_BUSY` | 端口被占用 | 修改端口配置 |
-
-### 8.2 日志查看
-
-```bash
-# 查看检测日志
-tail -f output/logs/detection.log
-
-# 查看错误日志
-grep "ERROR" output/logs/*.log
-```
-
-### 8.3 性能调优
-
-#### 检测性能优化
-
-```python
-# 减少检测频率
-DETECTION_INTERVAL = 2.0  # 从 1.0 改为 2.0 秒
-
-# 减少同时检测的车辆数量
-MAX_VEHICLES = 5
-```
-
-#### CARLA 性能优化
-
-```bash
-# 启动时降低渲染质量
-./CarlaUE4.sh -quality-level=Low
-
-# 减少 NPC 车辆
-# 在脚本中设置 traffic_manager.distance_to_leading_vehicle
-```
-
-### 8.4 重置系统
-
-如果系统出现异常状态，可以完全重置：
-
-```bash
-# 1. 停止所有服务
-pkill -f carla
-pkill -f "python3 run_"
-pkill -f "uvicorn"
-
-# 2. 清理输出
-rm -rf output_*/
-rm -rf data/safety.db
-
-# 3. 重启 CARLA
-cd ~/CARLA_0.9.13
-./CarlaUE4.sh
-
-# 4. 重新运行检测
-cd /home/aisecurity/01_ZHB
-python3 run_realtime_alert.py
-```
+### 6.2 报告展示要点
+- **技术架构图**：前后端分离 + CARLA 集成
+- **核心功能**：实时检测 + 知识图谱 + Web可视化
+- **运行效果**：3 列表格布局的知识图谱（自车、场景、风险）
+- **项目亮点**：Per-event 图谱、WebSocket 推送、多模式检测
 
 ---
 
-## 九、最佳实践
+## 七、更新日志
 
-### 9.1 测试流程建议
-
-1. **第一次测试**: 使用 `run_anomaly_simple.py` 验证系统能正常工作
-2. **第二次测试**: 使用 `run_realtime_alert.py` 测试真实场景检测
-3. **长时间测试**: 使用 `run_real_carla_detection.py` 进行 30 分钟压力测试
-4. **生产部署**: 使用 Docker Compose 部署到生产环境
-
-### 9.2 参数调优建议
-
-| 场景 | 推荐参数调整 |
-|------|-------------|
-| 高速公路 | `rho=0.7, a_min_brake=5.0` |
-| 城市道路 | `rho=0.5, a_min_brake=4.0`（默认）|
-| 拥堵路段 | `rho=0.3, a_min_brake=3.5` |
-| 雨天环境 | `rho=0.6, a_min_brake=5.0` |
-
-### 9.3 数据备份
-
-```bash
-# 备份检测数据
-tar -czf backup_$(date +%Y%m%d).tar.gz output_*/ data/
-
-# 备份数据库
-cp data/safety.db backup/safety_$(date +%Y%m%d).db
-```
-
----
-
-## 📞 技术支持
-
-- **项目地址**: [github.com/small1zhang/ads_safety_platform](https://github.com/small1zhang/ads_safety_platform)
-- **问题反馈**: GitHub Issues
-- **文档版本**: v2.0.0
-- **最后更新**: 2026-08-26
-
----
-
-*本文档将持续更新以反映系统最新功能。*
+| 版本 | 日期 | 更新内容 |
+|------|------|---------|
+| v2.0.0 | 2026-08-27 | 完善知识图谱、添加 Toast 提示 |
+| v1.0.0 | 2026-08-20 | 基础异常检测功能 |
